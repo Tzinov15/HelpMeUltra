@@ -2,20 +2,21 @@ import { useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { ActivityCard } from './ActivityCard'
 import { useActivities } from './hooks/useActivities'
-import { useZonePreloader } from '@/features/zones/hooks/useZonePreloader'
+import { ZoneLegend } from '@/features/zones/ZoneLegend'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { activitiesCache, zonesCache } from '@/lib/stravaCache'
+import type { ZonePreloadState } from '@/features/zones/hooks/useZonePreloader'
 
 type Filter = 'all' | 'run' | 'ride'
 
-export function ActivityFeed() {
+interface Props {
+  zoneProgress: ZonePreloadState | null
+}
+
+export function ActivityFeed({ zoneProgress }: Props) {
   const { data: activities, isLoading, error } = useActivities()
   const [filter, setFilter] = useState<Filter>('all')
-  const [zoneProgress, setZoneProgress] = useState<{ loaded: number; total: number; done: boolean } | null>(null)
-
-  // Kick off background preloading of all zone data as soon as activities are available
-  useZonePreloader(activities, setZoneProgress)
 
   const filtered = useMemo(() => {
     if (!activities) return []
@@ -43,6 +44,7 @@ export function ActivityFeed() {
   const cachedAt = activitiesCache.cachedAt()
   const zonesCached = zonesCache.count()
   const zonesTotal = activities?.filter((a) => a.has_heartrate).length ?? 0
+  const isFetchingZones = zoneProgress !== null && !zoneProgress.done
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'all', label: `All (${activities?.length ?? 0})` },
@@ -53,9 +55,9 @@ export function ActivityFeed() {
   return (
     <div className="flex flex-col">
 
-      {/* ── Filter bar + cache status ──────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-2 border-b border-gray-800 px-4 py-2">
-        <div className="flex gap-2">
+      {/* ── Top bar: filters (left) · legend (right) ───────────────────── */}
+      <div className="flex items-center justify-between gap-4 border-b border-gray-800 px-4 py-2">
+        <div className="flex gap-2 shrink-0">
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -71,27 +73,36 @@ export function ActivityFeed() {
           ))}
         </div>
 
-        {/* Cache info */}
-        <div className="flex items-center gap-3 text-xs text-gray-600">
-          {zoneProgress && !zoneProgress.done && (
+        {/* Zone colour legend */}
+        <ZoneLegend />
+      </div>
+
+      {/* ── Cache / loading status bar ─────────────────────────────────── */}
+      <div className="flex items-center justify-end gap-4 border-b border-gray-800 bg-gray-900/40 px-4 py-1.5 text-xs text-gray-600">
+        {isFetchingZones && zoneProgress && (
+          <>
             <span className="text-gray-500">
               Loading zones {zoneProgress.loaded}/{zoneProgress.total}…
             </span>
-          )}
-          {zoneProgress?.done && (
-            <span className="text-gray-600">
-              {zonesCached}/{zonesTotal} zones cached
-            </span>
-          )}
-          {cachedAt && (
-            <span title={new Date(cachedAt).toLocaleString()}>
-              Updated {format(new Date(cachedAt), 'MMM d, h:mm a')}
-            </span>
-          )}
-        </div>
+            <div className="w-24 rounded-full bg-gray-800 h-1">
+              <div
+                className="rounded-full bg-orange-600 h-1 transition-all duration-300"
+                style={{ width: `${(zoneProgress.loaded / zoneProgress.total) * 100}%` }}
+              />
+            </div>
+          </>
+        )}
+        {!isFetchingZones && zoneProgress?.done && (
+          <span>{zonesCached}/{zonesTotal} zones cached</span>
+        )}
+        {cachedAt && (
+          <span title={new Date(cachedAt).toLocaleString()}>
+            Updated {format(new Date(cachedAt), 'MMM d, h:mm a')}
+          </span>
+        )}
       </div>
 
-      {/* ── Activity list ──────────────────────────────────────────────── */}
+      {/* ── Activity list ───────────────────────────────────────────────── */}
       <div className="overflow-y-auto">
         {filtered.map((a) => (
           <ActivityCard key={a.id} activity={a} />

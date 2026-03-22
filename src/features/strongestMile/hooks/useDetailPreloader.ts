@@ -1,8 +1,17 @@
 /**
  * Preloads DetailedActivity (with best_efforts) for all run/trail-run activities.
  *
- * Same batching strategy as useZonePreloader — writes to both localStorage
- * and React Query cache so downstream consumers get data without extra fetches.
+ * dep is `activities?.length` — NOT the array reference.
+ *
+ * Rationale: TanStack Query returns a new array reference on every background
+ * refetch even when data is identical. If we used the array reference as a dep,
+ * the effect would re-run (and start a new batch) every time TanStack silently
+ * revalidates activities. Using `.length` means we only restart when activities
+ * are genuinely added or removed.
+ *
+ * We also do NOT set a cancel ref or return a cleanup that stops in-flight
+ * fetches. Letting fetches complete ensures localStorage is always fully written.
+ * `mountedRef` gates UI callbacks only, so we never call setState after unmount.
  */
 
 import { useEffect, useRef } from 'react'
@@ -26,10 +35,17 @@ export function useDetailPreloader(
   activities: SummaryActivity[] | undefined,
   onProgress?: OnProgress
 ) {
-  const cancelRef = useRef(false)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
-    if (!activities?.length) return
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  const activityCount = activities?.length ?? 0
+
+  useEffect(() => {
+    if (!activityCount || !activities) return
 
     const eligible = activities.filter(
       (a) =>
@@ -38,20 +54,29 @@ export function useDetailPreloader(
         !detailCache.has(a.id)
     )
 
+    const totalRuns = activities.filter(a => ['Run', 'TrailRun'].includes(a.sport_type)).length
+    console.log(
+      `[detail-preloader] ${totalRuns} runs total, ${eligible.length} need detail fetch,` +
+      ` ${totalRuns - eligible.length} already cached`
+    )
+
     if (!eligible.length) {
+      console.log('[detail-preloader] All run details cached ✓')
       onProgress?.({ total: 0, loaded: 0, done: true })
       return
     }
 
-    cancelRef.current = false
     const total = eligible.length
     let loaded = 0
 
     async function run() {
-      for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
-        if (cancelRef.current) break
+      console.log(`[detail-preloader] Starting batch load of ${total} run details (batch size ${BATCH_SIZE})`)
 
+      for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
         const batch = eligible.slice(i, i + BATCH_SIZE)
+        const batchNum = Math.floor(i / BATCH_SIZE) + 1
+
+        console.log(`[detail-preloader] Batch ${batchNum}: [${batch.map(a => a.id).join(', ')}]`)
 
         await Promise.all(
           batch.map(async (a) => {
@@ -61,26 +86,30 @@ export function useDetailPreloader(
                 { params: { include_all_efforts: true } }
               )
               detailCache.set(a.id, data)
-            } catch {
-              // Skip silently
+              const effortCount = data.best_efforts?.length ?? 0
+              console.log(`[detail-preloader] ✓ "${a.name}" (${a.id}) — ${effortCount} best efforts`)
+            } catch (err) {
+              const status = (err as { response?: { status: number } }).response?.status
+              console.warn(`[detail-preloader] ✗ Failed to fetch detail for ${a.id} — HTTP ${status ?? 'network error'}`)
             } finally {
               loaded++
-              onProgress?.({ total, loaded, done: loaded >= total })
+              if (mountedRef.current) {
+                onProgress?.({ total, loaded, done: loaded >= total })
+              }
             }
           })
         )
 
         if (i + BATCH_SIZE < eligible.length) {
+          console.log(`[detail-preloader] Batch ${batchNum} done (${loaded}/${total}), waiting ${BATCH_DELAY_MS}ms…`)
           await new Promise((r) => setTimeout(r, BATCH_DELAY_MS))
         }
       }
+
+      console.log(`[detail-preloader] ✓ Complete — ${loaded}/${total} run details loaded`)
     }
 
     run()
-
-    return () => {
-      cancelRef.current = true
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activities])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityCount])
 }

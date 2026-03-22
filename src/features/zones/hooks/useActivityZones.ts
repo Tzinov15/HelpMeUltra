@@ -19,12 +19,16 @@ export interface ActivityZone {
 }
 
 async function fetchActivityZones(id: number): Promise<ActivityZone[]> {
-  // Check localStorage first — zone data never changes
   const cached = zonesCache.get(id)
-  if (cached) return cached
+  if (cached) {
+    console.log(`[zones] Cache hit for activity ${id}`)
+    return cached
+  }
 
+  console.log(`[zones] Fetching zones for activity ${id}`)
   const { data } = await axiosInstance.get<ActivityZone[]>(`/activities/${id}/zones`)
   zonesCache.set(id, data)
+  console.log(`[zones] Stored zones for activity ${id} (${data.length} zone types)`)
   return data
 }
 
@@ -33,7 +37,7 @@ export function useActivityZones(activityId: number | null) {
     queryKey: ['activity-zones', activityId],
     queryFn: () => fetchActivityZones(activityId!),
     enabled: activityId !== null,
-    staleTime: Infinity, // zone data is immutable
+    staleTime: Infinity,
     gcTime: Infinity,
   })
 }

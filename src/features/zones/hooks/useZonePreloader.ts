@@ -1,13 +1,9 @@
 /**
  * Preloads HR zone data for all activities in the background.
  *
- * Strategy:
- *  - Skip any activity already in localStorage (zonesCache)
- *  - Skip activities without heart rate data (has_heartrate = false)
- *  - Fetch in batches of 3 with a 600ms pause between batches (~5 req/sec max)
- *    to stay well clear of Strava's 200 req/15min rate limit
- *  - Each fetched result is written to both localStorage AND React Query's cache,
- *    so useActivityZones() picks it up instantly without a second request
+ * dep is `activities?.length` — NOT the array reference — to avoid cancelling
+ * in-flight fetches when TanStack Query returns a new reference on background
+ * refetch. See implementation notes in useDetailPreloader for full rationale.
  */
 
 import { useEffect, useRef } from 'react'
@@ -20,42 +16,57 @@ import type { SummaryActivity } from '@/features/activities/hooks/useActivities'
 const BATCH_SIZE = 3
 const BATCH_DELAY_MS = 600
 
-interface PreloadState {
+export interface ZonePreloadState {
   total: number
   loaded: number
   done: boolean
 }
 
-type OnProgress = (state: PreloadState) => void
+type OnProgress = (state: ZonePreloadState) => void
 
 export function useZonePreloader(
   activities: SummaryActivity[] | undefined,
   onProgress?: OnProgress
 ) {
   const queryClient = useQueryClient()
-  const cancelRef = useRef(false)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
-    if (!activities?.length) return
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  const activityCount = activities?.length ?? 0
+
+  useEffect(() => {
+    if (!activityCount || !activities) return
 
     const eligible = activities.filter(
       (a) => a.has_heartrate && !zonesCache.has(a.id)
     )
 
+    console.log(
+      `[zone-preloader] ${activities.filter(a => a.has_heartrate).length} HR activities total,` +
+      ` ${eligible.length} need zone fetch, ${activityCount - eligible.length} already cached`
+    )
+
     if (!eligible.length) {
+      console.log('[zone-preloader] All zones cached ✓')
       onProgress?.({ total: 0, loaded: 0, done: true })
       return
     }
 
-    cancelRef.current = false
     const total = eligible.length
     let loaded = 0
 
     async function run() {
-      for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
-        if (cancelRef.current) break
+      console.log(`[zone-preloader] Starting batch load of ${total} zone sets (batch size ${BATCH_SIZE})`)
 
+      for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
         const batch = eligible.slice(i, i + BATCH_SIZE)
+        const batchNum = Math.floor(i / BATCH_SIZE) + 1
+
+        console.log(`[zone-preloader] Batch ${batchNum}: fetching activity IDs [${batch.map(a => a.id).join(', ')}]`)
 
         await Promise.all(
           batch.map(async (a) => {
@@ -64,30 +75,30 @@ export function useZonePreloader(
                 `/activities/${a.id}/zones`
               )
               zonesCache.set(a.id, data)
-              // Populate React Query cache so useActivityZones returns data
-              // without re-fetching
               queryClient.setQueryData(['activity-zones', a.id], data)
-            } catch {
-              // Silently skip — don't let one failure block the batch
+              console.log(`[zone-preloader] ✓ Stored zones for "${a.name}" (${a.id})`)
+            } catch (err) {
+              const status = (err as { response?: { status: number } }).response?.status
+              console.warn(`[zone-preloader] ✗ Failed to fetch zones for ${a.id} — HTTP ${status ?? 'network error'}`)
             } finally {
               loaded++
-              onProgress?.({ total, loaded, done: loaded >= total })
+              if (mountedRef.current) {
+                onProgress?.({ total, loaded, done: loaded >= total })
+              }
             }
           })
         )
 
         if (i + BATCH_SIZE < eligible.length) {
+          console.log(`[zone-preloader] Batch ${batchNum} done (${loaded}/${total}), waiting ${BATCH_DELAY_MS}ms…`)
           await new Promise((r) => setTimeout(r, BATCH_DELAY_MS))
         }
       }
+
+      console.log(`[zone-preloader] ✓ Complete — ${loaded}/${total} zone sets loaded`)
     }
 
     run()
-
-    return () => {
-      cancelRef.current = true
-    }
-  // Deliberately run only when the activity list reference changes (i.e. fresh fetch)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activities])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityCount])
 }

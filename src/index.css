@@ -2,34 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Semantic CSS custom properties ──────────────────────────────────────────
+   Components should prefer these tokens over raw Tailwind grays so that
+   switching between dark and light mode only requires updating values here.
+   ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
+  /* Dark mode is the default / only fully-styled mode right now */
   color-scheme: dark;
+
+  --surface-base:    #030712; /* gray-950 */
+  --surface-raised:  #111827; /* gray-900 */
+  --surface-overlay: #0f172a; /* gray-900 darker */
+  --surface-border:  #1f2937; /* gray-800 */
+
+  --text-primary:    #f9fafb; /* gray-50  */
+  --text-secondary:  #d1d5db; /* gray-300 */
+  --text-muted:      #6b7280; /* gray-500 */
+
+  --brand:           #f97316; /* orange-500 */
+  --brand-dark:      #ea580c; /* orange-600 */
 }
 
+/* Light mode token overrides — add component styles with `dark:` prefixes
+   when you are ready to build out the light theme. */
+.light {
+  color-scheme: light;
+
+  --surface-base:    #f8fafc; /* slate-50  */
+  --surface-raised:  #ffffff;
+  --surface-overlay: #f1f5f9; /* slate-100 */
+  --surface-border:  #e2e8f0; /* slate-200 */
+
+  --text-primary:    #0f172a; /* slate-900 */
+  --text-secondary:  #334155; /* slate-700 */
+  --text-muted:      #94a3b8; /* slate-400 */
+
+  --brand:           #ea580c; /* orange-600 (slightly darker on light bg) */
+  --brand-dark:      #c2410c; /* orange-700 */
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+
 body {
-  background-color: #030712;
-  color: #f9fafb;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
   margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: #111827;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #374151;
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
 }

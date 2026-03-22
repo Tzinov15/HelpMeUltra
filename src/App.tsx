@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { CallbackPage } from '@/pages/CallbackPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { queryClient } from '@/api/queryClient'
+import { ThemeProvider } from '@/lib/theme'
 import '@/lib/chartjs'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -33,12 +34,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }

@@ -2,24 +2,24 @@ import { useRef, useEffect, useMemo } from 'react'
 import * as d3 from 'd3'
 import { format } from 'date-fns'
 import { useActivities } from '@/features/activities/hooks/useActivities'
-import { useDetailPreloader } from './hooks/useDetailPreloader'
 import { useStrongestMile, type StrongestMileEntry } from './hooks/useStrongestMile'
 import { formatPace } from '@/lib/strava/formatters'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { detailCache } from '@/lib/stravaCache'
+import type { DetailPreloadState } from './hooks/useDetailPreloader'
 
-export function StrongestMileViz() {
+interface Props {
+  detailProgress: DetailPreloadState | null
+}
+
+export function StrongestMileViz({ detailProgress }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   const { data: activities } = useActivities()
 
-  // Preload detail for all runs automatically — reads from localStorage cache
-  // first so no unnecessary API calls on repeat visits
-  const [detailProgress, setDetailProgress] = useDetailProgressState()
-  useDetailPreloader(activities, setDetailProgress)
-
-  // Pull cached detailed activities for the strongest mile calculation
+  // Read from detailCache — recomputes whenever detailProgress changes,
+  // which happens as the preloader (running in DashboardPage) fills the cache.
   const detailedActivities = useMemo(() => {
     if (!activities) return []
     return activities
@@ -28,11 +28,12 @@ export function StrongestMileViz() {
         const detail = detailCache.get(a.id)
         return detail ? [{ activity: detail }] : []
       })
+  // detailProgress is the tick that causes this to re-evaluate as cache fills
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activities, detailProgress])
 
   const entries = useStrongestMile(detailedActivities)
 
-  // D3 chart
   useEffect(() => {
     if (!entries.length || !svgRef.current) return
 
@@ -64,16 +65,10 @@ export function StrongestMileViz() {
     // Grid
     svg.append('g')
       .call(d3.axisLeft(y).ticks(5).tickSize(-innerW).tickFormat(() => ''))
-      .call((g) => {
-        g.select('.domain').remove()
-        g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3')
-      })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3') })
     svg.append('g').attr('transform', `translate(0,${innerH})`)
       .call(d3.axisBottom(x).ticks(6).tickSize(-innerH).tickFormat(() => ''))
-      .call((g) => {
-        g.select('.domain').remove()
-        g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3')
-      })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3') })
 
     // Dots
     svg.selectAll('circle')
@@ -107,33 +102,24 @@ export function StrongestMileViz() {
           ${d.isPR ? '<div class="mt-1 text-yellow-400 text-xs">⭐ PR</div>' : ''}
         `
       })
-      .on('mouseleave', () => {
-        if (tooltipRef.current) tooltipRef.current.style.display = 'none'
-      })
+      .on('mouseleave', () => { if (tooltipRef.current) tooltipRef.current.style.display = 'none' })
 
     // Axes
     svg.append('g').attr('transform', `translate(0,${innerH})`)
       .call(d3.axisBottom(x).ticks(6).tickFormat((d) => formatPace(d as number)))
       .call((g) => {
         g.select('.domain').attr('stroke', '#4b5563')
-        g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '10px')
-          .attr('transform', 'rotate(-20)').attr('text-anchor', 'end')
+        g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '10px').attr('transform', 'rotate(-20)').attr('text-anchor', 'end')
         g.selectAll('line').attr('stroke', '#4b5563')
       })
     svg.append('g')
       .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `${((d as number) / 1000).toFixed(1)}k ft`))
-      .call((g) => {
-        g.select('.domain').remove()
-        g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '11px')
-        g.selectAll('line').remove()
-      })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '11px'); g.selectAll('line').remove() })
 
-    svg.append('text').attr('x', innerW / 2).attr('y', innerH + 52)
-      .attr('text-anchor', 'middle').attr('fill', '#6b7280').attr('font-size', '11px')
-      .text('← Slower   Grade Adjusted Pace   Faster →')
+    svg.append('text').attr('x', innerW / 2).attr('y', innerH + 52).attr('text-anchor', 'middle')
+      .attr('fill', '#6b7280').attr('font-size', '11px').text('← Slower   Grade Adjusted Pace   Faster →')
     svg.append('text').attr('transform', 'rotate(-90)').attr('x', -innerH / 2).attr('y', -50)
-      .attr('text-anchor', 'middle').attr('fill', '#6b7280').attr('font-size', '11px')
-      .text('Activity Elevation Gain (ft)')
+      .attr('text-anchor', 'middle').attr('fill', '#6b7280').attr('font-size', '11px').text('Activity Elevation Gain (ft)')
 
   }, [entries])
 
@@ -153,13 +139,9 @@ export function StrongestMileViz() {
             Best 1-mile efforts from runs · Size = strength score · Color = avg HR (green=low, red=high) · Gold ring = PR
           </p>
         </div>
-
-        {/* Loading / done indicator */}
         <div className="text-right text-xs text-gray-600 shrink-0 ml-4">
           {isLoading && detailProgress && (
-            <span>
-              Loading {detailProgress.loaded}/{detailProgress.total} runs…
-            </span>
+            <span>Loading {detailProgress.loaded}/{detailProgress.total} runs…</span>
           )}
           {detailProgress?.done && (
             <span>{detailedActivities.length}/{totalRuns} runs loaded</span>
@@ -167,15 +149,12 @@ export function StrongestMileViz() {
         </div>
       </div>
 
-      {/* Progress bar while loading for the first time */}
       {isLoading && detailProgress && (
-        <div className="mb-4">
-          <div className="w-full rounded-full bg-gray-800 h-1">
-            <div
-              className="rounded-full bg-orange-500 h-1 transition-all duration-300"
-              style={{ width: `${detailProgress.total ? (detailProgress.loaded / detailProgress.total) * 100 : 0}%` }}
-            />
-          </div>
+        <div className="mb-4 w-full rounded-full bg-gray-800 h-1">
+          <div
+            className="rounded-full bg-orange-500 h-1 transition-all duration-300"
+            style={{ width: `${detailProgress.total ? (detailProgress.loaded / detailProgress.total) * 100 : 0}%` }}
+          />
         </div>
       )}
 
@@ -228,9 +207,7 @@ export function StrongestMileViz() {
                       <td className="py-2 pr-4 text-right font-mono">{formatPace(e.paceSecPerMile)}</td>
                       <td className="py-2 pr-4 text-right font-mono text-emerald-400">{formatPace(e.gapSecPerMile)}</td>
                       <td className="py-2 pr-4 text-right">{Math.round(e.elevGainFt).toLocaleString()} ft</td>
-                      <td className="py-2 pr-4 text-right text-red-400">
-                        {e.avgHR ? `${Math.round(e.avgHR)} bpm` : '—'}
-                      </td>
+                      <td className="py-2 pr-4 text-right text-red-400">{e.avgHR ? `${Math.round(e.avgHR)} bpm` : '—'}</td>
                       <td className="py-2 text-right font-semibold text-yellow-400">{e.score.toFixed(2)}</td>
                     </tr>
                   ))}
@@ -242,12 +219,4 @@ export function StrongestMileViz() {
       )}
     </div>
   )
-}
-
-// Small helper so the preload state is stable across renders
-import { useState } from 'react'
-import type { DetailPreloadState } from './hooks/useDetailPreloader'
-
-function useDetailProgressState() {
-  return useState<DetailPreloadState | null>(null)
 }
