@@ -72,7 +72,7 @@ export function PlanningPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {tab === 'calendar' && <RaceCalendar race={mainRace} />}
+        {tab === 'calendar' && <RaceCalendar race={mainRace} races={races} />}
         {tab === 'details' && <RaceDetails race={mainRace} activities={activities} />}
       </div>
     </div>
