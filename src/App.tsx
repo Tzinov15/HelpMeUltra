@@ -5,6 +5,8 @@ import { useAuth } from '@/auth/AuthContext'
 import { LoginPage } from '@/pages/LoginPage'
 import { CallbackPage } from '@/pages/CallbackPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { WhereWeveBeenPage } from '@/pages/WhereWeveBeenPage'
+import { PlanningPage } from '@/features/planning/PlanningPage'
 import { queryClient } from '@/api/queryClient'
 import { ThemeProvider } from '@/lib/theme'
 import '@/lib/chartjs'
@@ -19,14 +21,21 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route path="/callback" element={<CallbackPage />} />
+
+      {/* Protected layout — Header + TopLevelNav live here */}
       <Route
-        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/wherewevebeen" element={<WhereWeveBeenPage />} />
+        <Route path="/wherearewegoing" element={<PlanningPage />} />
+        {/* Legacy redirect */}
+        <Route path="/dashboard" element={<Navigate to="/wherewevebeen" replace />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -33,7 +33,8 @@ type OnProgress = (state: DetailPreloadState) => void
 
 export function useDetailPreloader(
   activities: SummaryActivity[] | undefined,
-  onProgress?: OnProgress
+  onProgress?: OnProgress,
+  enabled = false
 ) {
   const mountedRef = useRef(true)
 
@@ -45,7 +46,7 @@ export function useDetailPreloader(
   const activityCount = activities?.length ?? 0
 
   useEffect(() => {
-    if (!activityCount || !activities) return
+    if (!enabled || !activityCount || !activities) return
 
     const eligible = activities.filter(
       (a) =>
@@ -54,14 +55,7 @@ export function useDetailPreloader(
         !detailCache.has(a.id)
     )
 
-    const totalRuns = activities.filter(a => ['Run', 'TrailRun'].includes(a.sport_type)).length
-    console.log(
-      `[detail-preloader] ${totalRuns} runs total, ${eligible.length} need detail fetch,` +
-      ` ${totalRuns - eligible.length} already cached`
-    )
-
     if (!eligible.length) {
-      console.log('[detail-preloader] All run details cached ✓')
       onProgress?.({ total: 0, loaded: 0, done: true })
       return
     }
@@ -70,13 +64,8 @@ export function useDetailPreloader(
     let loaded = 0
 
     async function run() {
-      console.log(`[detail-preloader] Starting batch load of ${total} run details (batch size ${BATCH_SIZE})`)
-
       for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
         const batch = eligible.slice(i, i + BATCH_SIZE)
-        const batchNum = Math.floor(i / BATCH_SIZE) + 1
-
-        console.log(`[detail-preloader] Batch ${batchNum}: [${batch.map(a => a.id).join(', ')}]`)
 
         await Promise.all(
           batch.map(async (a) => {
@@ -86,11 +75,9 @@ export function useDetailPreloader(
                 { params: { include_all_efforts: true } }
               )
               detailCache.set(a.id, data)
-              const effortCount = data.best_efforts?.length ?? 0
-              console.log(`[detail-preloader] ✓ "${a.name}" (${a.id}) — ${effortCount} best efforts`)
             } catch (err) {
               const status = (err as { response?: { status: number } }).response?.status
-              console.warn(`[detail-preloader] ✗ Failed to fetch detail for ${a.id} — HTTP ${status ?? 'network error'}`)
+              console.warn(`[detail-preloader] ✗ detail for ${a.id} — HTTP ${status ?? 'network error'}`)
             } finally {
               loaded++
               if (mountedRef.current) {
@@ -101,15 +88,12 @@ export function useDetailPreloader(
         )
 
         if (i + BATCH_SIZE < eligible.length) {
-          console.log(`[detail-preloader] Batch ${batchNum} done (${loaded}/${total}), waiting ${BATCH_DELAY_MS}ms…`)
           await new Promise((r) => setTimeout(r, BATCH_DELAY_MS))
         }
       }
-
-      console.log(`[detail-preloader] ✓ Complete — ${loaded}/${total} run details loaded`)
     }
 
     run()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activityCount])
+  }, [activityCount, enabled])
 }

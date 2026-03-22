@@ -2,7 +2,22 @@ import { useAthlete } from '@/features/zones/hooks/useAthlete'
 import { useAuth } from '@/auth/AuthContext'
 import { useTheme } from '@/lib/theme'
 
-export function Header() {
+interface Props {
+  onSync?: () => void
+  syncing?: boolean
+  lastSyncedAt?: number | null // ms epoch
+}
+
+function formatSyncAge(ts: number): string {
+  const mins = Math.round((Date.now() - ts) / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.round(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.round(hrs / 24)}d ago`
+}
+
+export function Header({ onSync, syncing, lastSyncedAt }: Props) {
   const { data: athlete } = useAthlete()
   const { logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
@@ -30,6 +45,23 @@ export function Header() {
 
       {/* Right controls */}
       <div className="flex items-center gap-3">
+        {/* Sync button */}
+        {onSync && (
+          <button
+            onClick={onSync}
+            disabled={syncing}
+            title="Sync latest data from Strava"
+            className="flex items-center gap-1.5 rounded-lg border border-hmu-tertiary dark:border-gray-700 px-2.5 py-1 text-xs font-medium text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-gray-200 hover:border-hmu-secondary dark:hover:border-gray-500 transition-colors disabled:opacity-50"
+          >
+            <svg
+              className={`h-3 w-3 ${syncing ? 'animate-spin' : ''}`}
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>{syncing ? 'Syncing…' : lastSyncedAt ? formatSyncAge(lastSyncedAt) : 'Sync'}</span>
+          </button>
+        )}
         {/* Theme toggle — dark/light */}
         <button
           onClick={toggleTheme}
