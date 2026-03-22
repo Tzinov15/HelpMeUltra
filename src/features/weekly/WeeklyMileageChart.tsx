@@ -45,7 +45,7 @@ export function WeeklyMileageChart() {
       .call(d3.axisLeft(y).ticks(5).tickSize(-innerW).tickFormat(() => ''))
       .call((g) => {
         g.select('.domain').remove()
-        g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3')
+        g.selectAll('line').attr('stroke', '#DBC292').attr('stroke-dasharray', '3,3').attr('opacity', 0.6)
       })
 
     // Run bars (orange)
@@ -91,7 +91,7 @@ export function WeeklyMileageChart() {
       .append('path')
       .datum(rollingAvg)
       .attr('fill', 'none')
-      .attr('stroke', '#e2e8f0')
+      .attr('stroke', '#8B9953')
       .attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '4,2')
       .attr('opacity', 0.6)
@@ -111,13 +111,13 @@ export function WeeklyMileageChart() {
           })
       )
       .call((g) => {
-        g.select('.domain').attr('stroke', '#4b5563')
+        g.select('.domain').attr('stroke', '#8B9953')
         g.selectAll('text')
-          .attr('fill', '#9ca3af')
+          .attr('fill', '#566827')
           .attr('font-size', '11px')
           .attr('transform', 'rotate(-30)')
           .attr('text-anchor', 'end')
-        g.selectAll('line').attr('stroke', '#4b5563')
+        g.selectAll('line').attr('stroke', '#8B9953')
       })
 
     // Y axis
@@ -126,7 +126,7 @@ export function WeeklyMileageChart() {
       .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `${d}mi`))
       .call((g) => {
         g.select('.domain').remove()
-        g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '11px')
+        g.selectAll('text').attr('fill', '#566827').attr('font-size', '11px')
         g.selectAll('line').remove()
       })
 
@@ -150,7 +150,7 @@ export function WeeklyMileageChart() {
         .append('text')
         .attr('x', i * 55 + 16)
         .attr('y', 10)
-        .attr('fill', '#9ca3af')
+        .attr('fill', '#566827')
         .attr('font-size', '11px')
         .text(item.label)
     })
@@ -178,7 +178,7 @@ export function WeeklyMileageChart() {
 
   return (
     <div className="w-full">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-hmu-secondary dark:text-gray-400">
         Weekly Mileage — Last 52 Weeks
       </h3>
       <svg ref={svgRef} className="w-full" />

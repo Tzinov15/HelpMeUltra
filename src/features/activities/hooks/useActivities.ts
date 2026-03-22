@@ -23,6 +23,8 @@ export interface SummaryActivity {
   has_heartrate: boolean
   average_watts?: number
   workout_type?: number
+  suffer_score?: number
+  average_grade_adjusted_speed?: number
   map?: { summary_polyline?: string }
 }
 

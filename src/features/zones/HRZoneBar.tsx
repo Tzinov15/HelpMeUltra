@@ -14,7 +14,7 @@ interface Props {
 export function HRZoneBar({ buckets, showLabels = false, height = 'h-3' }: Props) {
   const total = useMemo(() => buckets.reduce((s, b) => s + b.time, 0), [buckets])
 
-  if (total === 0) return <div className={clsx('w-full rounded bg-gray-700', height)} />
+  if (total === 0) return <div className={clsx('w-full rounded bg-hmu-tertiary dark:bg-gray-700', height)} />
 
   return (
     <div className="w-full">
@@ -35,7 +35,7 @@ export function HRZoneBar({ buckets, showLabels = false, height = 'h-3' }: Props
       {showLabels && (
         <div className="mt-1 flex gap-3">
           {buckets.map((b, i) => (
-            <span key={i} className="flex items-center gap-1 text-xs text-gray-500">
+            <span key={i} className="flex items-center gap-1 text-xs text-hmu-secondary dark:text-gray-500">
               <span className={clsx('inline-block h-2 w-2 rounded-sm', ZONE_COLORS[i])} />
               {ZONE_LABELS[i]}: {Math.round(b.time / 60)}m
             </span>

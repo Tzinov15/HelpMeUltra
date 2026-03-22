@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react'
 import { format } from 'date-fns'
-import { ActivityCard } from './ActivityCard'
+import { ActivityCard, STAT_COL } from './ActivityCard'
 import { useActivities } from './hooks/useActivities'
 import { ZoneLegend } from '@/features/zones/ZoneLegend'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { activitiesCache, zonesCache } from '@/lib/stravaCache'
+import { ON_FOOT_TYPES, ON_WHEELS_TYPES } from '@/lib/strava/formatters'
 import type { ZonePreloadState } from '@/features/zones/hooks/useZonePreloader'
 
-type Filter = 'all' | 'run' | 'ride'
+type Filter = 'all' | 'foot' | 'wheels'
 
 interface Props {
   zoneProgress: ZonePreloadState | null
@@ -21,12 +22,10 @@ export function ActivityFeed({ zoneProgress }: Props) {
   const filtered = useMemo(() => {
     if (!activities) return []
     switch (filter) {
-      case 'run':
-        return activities.filter((a) => ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type))
-      case 'ride':
-        return activities.filter((a) =>
-          ['Ride', 'MountainBikeRide', 'VirtualRide', 'GravelRide'].includes(a.sport_type)
-        )
+      case 'foot':
+        return activities.filter((a) => ON_FOOT_TYPES.includes(a.sport_type))
+      case 'wheels':
+        return activities.filter((a) => ON_WHEELS_TYPES.includes(a.sport_type))
       default:
         return activities
     }
@@ -36,7 +35,7 @@ export function ActivityFeed({ zoneProgress }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <LoadingSpinner size="lg" />
-        <p className="text-sm text-gray-400">Loading your activities…</p>
+        <p className="text-sm text-hmu-secondary dark:text-gray-400">Loading your activities…</p>
       </div>
     )
   if (error) return <ErrorMessage message="Failed to load activities" />
@@ -48,15 +47,15 @@ export function ActivityFeed({ zoneProgress }: Props) {
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'all', label: `All (${activities?.length ?? 0})` },
-    { id: 'run', label: 'Runs' },
-    { id: 'ride', label: 'Rides' },
+    { id: 'foot', label: 'On Foot' },
+    { id: 'wheels', label: 'On Wheels' },
   ]
 
   return (
     <div className="flex flex-col">
 
       {/* ── Top bar: filters (left) · legend (right) ───────────────────── */}
-      <div className="flex items-center justify-between gap-4 border-b border-gray-800 px-4 py-2">
+      <div className="flex items-center justify-between gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4 py-2">
         <div className="flex gap-2 shrink-0">
           {FILTERS.map((f) => (
             <button
@@ -64,8 +63,8 @@ export function ActivityFeed({ zoneProgress }: Props) {
               onClick={() => setFilter(f.id)}
               className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
                 filter === f.id
-                  ? 'bg-orange-500 text-white'
-                  : 'text-gray-500 hover:text-gray-300'
+                  ? 'bg-hmu-primary dark:bg-orange-500 text-white'
+                  : 'text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300'
               }`}
             >
               {f.label}
@@ -78,15 +77,15 @@ export function ActivityFeed({ zoneProgress }: Props) {
       </div>
 
       {/* ── Cache / loading status bar ─────────────────────────────────── */}
-      <div className="flex items-center justify-end gap-4 border-b border-gray-800 bg-gray-900/40 px-4 py-1.5 text-xs text-gray-600">
+      <div className="flex items-center justify-end gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900/40 px-4 py-1.5 text-xs text-hmu-secondary dark:text-gray-600">
         {isFetchingZones && zoneProgress && (
           <>
-            <span className="text-gray-500">
+            <span className="text-hmu-secondary dark:text-gray-500">
               Loading zones {zoneProgress.loaded}/{zoneProgress.total}…
             </span>
-            <div className="w-24 rounded-full bg-gray-800 h-1">
+            <div className="w-24 rounded-full bg-hmu-tertiary dark:bg-gray-800 h-1">
               <div
-                className="rounded-full bg-orange-600 h-1 transition-all duration-300"
+                className="rounded-full bg-hmu-primary dark:bg-orange-600 h-1 transition-all duration-300"
                 style={{ width: `${(zoneProgress.loaded / zoneProgress.total) * 100}%` }}
               />
             </div>
@@ -104,11 +103,34 @@ export function ActivityFeed({ zoneProgress }: Props) {
 
       {/* ── Activity list ───────────────────────────────────────────────── */}
       <div className="overflow-y-auto">
+
+        {/* Sticky column header — mirrors ActivityCard's 3-section layout exactly */}
+        <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 px-4 py-1.5">
+          {/* LEFT: matches flex-1 min-w-0 */}
+          <div className="flex-1 min-w-0 text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
+            Activity
+          </div>
+          {/* CENTER: 7 stat columns */}
+          <div className="flex shrink-0 items-center">
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Time</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Dist</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Elev</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-red-400`}>HR</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400`}>Pace</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-teal-500 dark:text-teal-400`}>GAP</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-accent dark:text-yellow-400`}>Effort</div>
+          </div>
+          {/* RIGHT: matches w-48 */}
+          <div className="w-48 shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
+            HR Zones
+          </div>
+        </div>
+
         {filtered.map((a) => (
           <ActivityCard key={a.id} activity={a} />
         ))}
         {filtered.length === 0 && (
-          <p className="py-10 text-center text-sm text-gray-500">No activities found</p>
+          <p className="py-10 text-center text-sm text-hmu-secondary dark:text-gray-500">No activities found</p>
         )}
       </div>
 

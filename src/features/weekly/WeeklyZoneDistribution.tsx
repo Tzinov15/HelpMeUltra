@@ -60,7 +60,7 @@ export function WeeklyZoneDistribution() {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { color: '#9ca3af', boxWidth: 12, font: { size: 11 } },
+        labels: { color: '#566827', boxWidth: 12, font: { size: 11 } },
       },
       tooltip: {
         callbacks: {
@@ -71,17 +71,17 @@ export function WeeklyZoneDistribution() {
     scales: {
       x: {
         stacked: true,
-        ticks: { color: '#9ca3af', font: { size: 11 }, maxRotation: 30 },
-        grid: { color: '#1f2937' },
+        ticks: { color: '#566827', font: { size: 11 }, maxRotation: 30 },
+        grid: { color: '#DBC292' },
       },
       y: {
         stacked: true,
         ticks: {
-          color: '#9ca3af',
+          color: '#566827',
           font: { size: 11 },
           callback: (v) => `${v}m`,
         },
-        grid: { color: '#374151' },
+        grid: { color: '#DBC292' },
       },
     },
   }
@@ -95,15 +95,15 @@ export function WeeklyZoneDistribution() {
 
   if (!chartData)
     return (
-      <p className="text-sm text-gray-500 text-center py-10">No data available</p>
+      <p className="text-sm text-hmu-secondary dark:text-gray-500 text-center py-10">No data available</p>
     )
 
   return (
     <div className="w-full">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-hmu-secondary dark:text-gray-400">
         Weekly HR Zone Distribution — Last 26 Weeks
       </h3>
-      <p className="mb-4 text-xs text-gray-500">
+      <p className="mb-4 text-xs text-hmu-secondary dark:text-gray-500">
         Estimated from avg HR per activity using your Strava zone definitions.
       </p>
       <div className="h-72">

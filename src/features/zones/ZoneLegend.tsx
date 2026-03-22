@@ -40,7 +40,7 @@ function LoadingLegend() {
       {ZONE_NAMES.map((_name, i) => (
         <div key={i} className="flex items-center gap-1 opacity-40">
           <span className={`inline-block h-2.5 w-2.5 rounded-sm ${ZONE_COLORS[i]}`} />
-          <span className="text-xs text-gray-500">Z{i + 1}</span>
+          <span className="text-xs text-hmu-secondary dark:text-gray-500">Z{i + 1}</span>
         </div>
       ))}
       <span className="text-xs text-gray-600 animate-pulse">loading zones…</span>
@@ -65,7 +65,7 @@ export function ZoneLegend() {
           {ZONE_NAMES.map((_, i) => (
             <div key={i} className="flex items-center gap-1">
               <span className={`inline-block h-2.5 w-2.5 rounded-sm ${ZONE_COLORS[i]}`} />
-              <span className="text-xs text-gray-600">Z{i + 1}</span>
+              <span className="text-xs text-hmu-secondary dark:text-gray-600">Z{i + 1}</span>
             </div>
           ))}
         </div>
@@ -89,10 +89,10 @@ export function ZoneLegend() {
       {zones.map((z, i) => (
         <div key={i} className="flex items-center gap-1" title={ZONE_NAMES[i]}>
           <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${ZONE_COLORS[i] ?? 'bg-gray-500'}`} />
-          <span className="text-xs text-gray-500">
-            <span className="text-gray-400 font-medium">Z{i + 1}</span>
+          <span className="text-xs text-hmu-secondary dark:text-gray-500">
+            <span className="text-hmu-primary dark:text-gray-400 font-medium">Z{i + 1}</span>
             {' '}
-            <span className="tabular-nums text-gray-600">{formatRange(z.min, z.max)}</span>
+            <span className="tabular-nums text-hmu-secondary dark:text-gray-600">{formatRange(z.min, z.max)}</span>
           </span>
         </div>
       ))}

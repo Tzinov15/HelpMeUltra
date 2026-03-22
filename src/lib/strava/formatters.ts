@@ -42,12 +42,22 @@ export function sportLabel(sportType: string): string {
     MountainBikeRide: 'MTB',
     VirtualRide: 'Virtual Ride',
     GravelRide: 'Gravel',
+    EBikeRide: 'E-Bike',
+    Velomobile: 'Velomobile',
     Swim: 'Swim',
     Walk: 'Walk',
     Hike: 'Hike',
+    StairStepper: 'Stairs',
+    RockClimbing: 'Climbing',
+    Yoga: 'Yoga',
+    WeightTraining: 'Weights',
+    Workout: 'Workout',
   }
   return map[sportType] ?? sportType
 }
+
+export const ON_FOOT_TYPES = ['Run', 'TrailRun', 'VirtualRun', 'Hike', 'Walk', 'StairStepper', 'RockClimbing']
+export const ON_WHEELS_TYPES = ['Ride', 'MountainBikeRide', 'VirtualRide', 'GravelRide', 'EBikeRide', 'Velomobile']
 
 export function isRun(sportType: string): boolean {
   return ['Run', 'TrailRun', 'VirtualRun'].includes(sportType)
@@ -58,5 +68,13 @@ export function isTrailRun(sportType: string): boolean {
 }
 
 export function isRide(sportType: string): boolean {
-  return ['Ride', 'MountainBikeRide', 'VirtualRide', 'GravelRide'].includes(sportType)
+  return ON_WHEELS_TYPES.includes(sportType)
+}
+
+export function isOnFoot(sportType: string): boolean {
+  return ON_FOOT_TYPES.includes(sportType)
+}
+
+export function isOnWheels(sportType: string): boolean {
+  return ON_WHEELS_TYPES.includes(sportType)
 }

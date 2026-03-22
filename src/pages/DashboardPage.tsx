@@ -35,12 +35,12 @@ export function DashboardPage() {
   )
 
   return (
-    <div className="flex h-screen flex-col bg-gray-950 text-white overflow-hidden">
+    <div className="flex h-screen flex-col bg-hmu-bg dark:bg-gray-950 text-hmu-primary dark:text-white overflow-hidden">
       <Header />
 
       {seasonStats && (
-        <div className="flex items-center gap-8 border-b border-gray-800 bg-gray-900 px-6 py-3">
-          <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="flex items-center gap-8 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900 px-6 py-3">
+          <span className="text-xs font-medium uppercase tracking-wider text-hmu-secondary dark:text-gray-500">
             12mo totals
           </span>
           <StatBadge

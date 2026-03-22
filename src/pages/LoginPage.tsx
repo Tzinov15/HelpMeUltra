@@ -2,7 +2,7 @@ import { buildAuthUrl } from '@/auth/stravaOAuth'
 
 export function LoginPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-950 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-hmu-bg dark:bg-gray-950 px-4">
       <div className="w-full max-w-sm text-center">
 
         {/* Logo + wordmark */}
@@ -14,15 +14,15 @@ export function LoginPage() {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">HelpMeUltra</h1>
-            <p className="mt-1 text-sm text-gray-400">Visualize your training data with precision</p>
+            <h1 className="text-3xl font-bold tracking-tight text-hmu-primary dark:text-white">HelpMeUltra</h1>
+            <p className="mt-1 text-sm text-hmu-secondary dark:text-gray-400">Visualize your training data with precision</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-800 bg-gray-900 p-8 shadow-xl">
+        <div className="rounded-2xl border border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 p-8 shadow-xl">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-white mb-2">Connect Your Account</h2>
-            <p className="text-sm text-gray-400">
+            <h2 className="text-lg font-semibold text-hmu-primary dark:text-white mb-2">Connect Your Account</h2>
+            <p className="text-sm text-hmu-secondary dark:text-gray-400">
               Sign in with Strava to visualize your HR zones, weekly mileage, and best mile efforts
             </p>
           </div>
@@ -38,8 +38,8 @@ export function LoginPage() {
             Connect with Strava
           </a>
 
-          <p className="mt-4 text-xs text-gray-600">
-            Requires <code className="text-gray-500">activity:read_all</code> scope
+          <p className="mt-4 text-xs text-hmu-secondary dark:text-gray-600">
+            Requires <code className="text-hmu-secondary dark:text-gray-500">activity:read_all</code> scope
           </p>
         </div>
 

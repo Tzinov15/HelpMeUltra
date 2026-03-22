@@ -65,10 +65,10 @@ export function StrongestMileViz({ detailProgress }: Props) {
     // Grid
     svg.append('g')
       .call(d3.axisLeft(y).ticks(5).tickSize(-innerW).tickFormat(() => ''))
-      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3') })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#DBC292').attr('stroke-dasharray', '3,3').attr('opacity', 0.7) })
     svg.append('g').attr('transform', `translate(0,${innerH})`)
       .call(d3.axisBottom(x).ticks(6).tickSize(-innerH).tickFormat(() => ''))
-      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#374151').attr('stroke-dasharray', '3,3') })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('line').attr('stroke', '#DBC292').attr('stroke-dasharray', '3,3').attr('opacity', 0.7) })
 
     // Dots
     svg.selectAll('circle')
@@ -90,16 +90,16 @@ export function StrongestMileViz({ detailProgress }: Props) {
         tooltip.style.left = `${ev.offsetX + 12}px`
         tooltip.style.top = `${ev.offsetY - 10}px`
         tooltip.innerHTML = `
-          <div class="font-semibold text-white text-xs mb-1">${d.activityName}</div>
-          <div class="text-gray-400 text-xs">${format(d.date, 'MMM d, yyyy')}</div>
+          <div class="font-semibold text-xs mb-1" style="color:#3D4A1A">${d.activityName}</div>
+          <div class="text-xs" style="color:#8B9953">${format(d.date, 'MMM d, yyyy')}</div>
           <div class="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
-            <span class="text-gray-400">Pace:</span><span class="text-white">${formatPace(d.paceSecPerMile)}</span>
-            <span class="text-gray-400">GAP:</span><span class="text-emerald-400">${formatPace(d.gapSecPerMile)}</span>
-            <span class="text-gray-400">Vert:</span><span class="text-white">${Math.round(d.elevGainFt).toLocaleString()} ft</span>
-            ${d.avgHR ? `<span class="text-gray-400">HR:</span><span class="text-red-400">${Math.round(d.avgHR)} bpm</span>` : ''}
-            <span class="text-gray-400">Score:</span><span class="text-yellow-400">${d.score.toFixed(2)}</span>
+            <span style="color:#8B9953">Pace:</span><span style="color:#566827">${formatPace(d.paceSecPerMile)}</span>
+            <span style="color:#8B9953">GAP:</span><span class="text-emerald-600">${formatPace(d.gapSecPerMile)}</span>
+            <span style="color:#8B9953">Vert:</span><span style="color:#566827">${Math.round(d.elevGainFt).toLocaleString()} ft</span>
+            ${d.avgHR ? `<span style="color:#8B9953">HR:</span><span class="text-red-500">${Math.round(d.avgHR)} bpm</span>` : ''}
+            <span style="color:#8B9953">Score:</span><span class="text-yellow-600">${d.score.toFixed(2)}</span>
           </div>
-          ${d.isPR ? '<div class="mt-1 text-yellow-400 text-xs">⭐ PR</div>' : ''}
+          ${d.isPR ? '<div class="mt-1 text-yellow-600 text-xs">⭐ PR</div>' : ''}
         `
       })
       .on('mouseleave', () => { if (tooltipRef.current) tooltipRef.current.style.display = 'none' })
@@ -108,18 +108,18 @@ export function StrongestMileViz({ detailProgress }: Props) {
     svg.append('g').attr('transform', `translate(0,${innerH})`)
       .call(d3.axisBottom(x).ticks(6).tickFormat((d) => formatPace(d as number)))
       .call((g) => {
-        g.select('.domain').attr('stroke', '#4b5563')
-        g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '10px').attr('transform', 'rotate(-20)').attr('text-anchor', 'end')
-        g.selectAll('line').attr('stroke', '#4b5563')
+        g.select('.domain').attr('stroke', '#8B9953')
+        g.selectAll('text').attr('fill', '#566827').attr('font-size', '10px').attr('transform', 'rotate(-20)').attr('text-anchor', 'end')
+        g.selectAll('line').attr('stroke', '#8B9953')
       })
     svg.append('g')
       .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `${((d as number) / 1000).toFixed(1)}k ft`))
-      .call((g) => { g.select('.domain').remove(); g.selectAll('text').attr('fill', '#9ca3af').attr('font-size', '11px'); g.selectAll('line').remove() })
+      .call((g) => { g.select('.domain').remove(); g.selectAll('text').attr('fill', '#566827').attr('font-size', '11px'); g.selectAll('line').remove() })
 
     svg.append('text').attr('x', innerW / 2).attr('y', innerH + 52).attr('text-anchor', 'middle')
-      .attr('fill', '#6b7280').attr('font-size', '11px').text('← Slower   Grade Adjusted Pace   Faster →')
+      .attr('fill', '#8B9953').attr('font-size', '11px').text('← Slower   Grade Adjusted Pace   Faster →')
     svg.append('text').attr('transform', 'rotate(-90)').attr('x', -innerH / 2).attr('y', -50)
-      .attr('text-anchor', 'middle').attr('fill', '#6b7280').attr('font-size', '11px').text('Activity Elevation Gain (ft)')
+      .attr('text-anchor', 'middle').attr('fill', '#8B9953').attr('font-size', '11px').text('Activity Elevation Gain (ft)')
 
   }, [entries])
 
@@ -132,14 +132,14 @@ export function StrongestMileViz({ detailProgress }: Props) {
     <div className="p-6">
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-hmu-secondary dark:text-gray-400">
             Strongest Mile Efforts
           </h3>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-hmu-secondary dark:text-gray-500">
             Best 1-mile efforts from runs · Size = strength score · Color = avg HR (green=low, red=high) · Gold ring = PR
           </p>
         </div>
-        <div className="text-right text-xs text-gray-600 shrink-0 ml-4">
+        <div className="text-right text-xs text-hmu-secondary dark:text-gray-600 shrink-0 ml-4">
           {isLoading && detailProgress && (
             <span>Loading {detailProgress.loaded}/{detailProgress.total} runs…</span>
           )}
@@ -150,16 +150,16 @@ export function StrongestMileViz({ detailProgress }: Props) {
       </div>
 
       {isLoading && detailProgress && (
-        <div className="mb-4 w-full rounded-full bg-gray-800 h-1">
+        <div className="mb-4 w-full rounded-full bg-hmu-tertiary dark:bg-gray-800 h-1">
           <div
-            className="rounded-full bg-orange-500 h-1 transition-all duration-300"
+            className="rounded-full bg-hmu-primary dark:bg-orange-500 h-1 transition-all duration-300"
             style={{ width: `${detailProgress.total ? (detailProgress.loaded / detailProgress.total) * 100 : 0}%` }}
           />
         </div>
       )}
 
       {entries.length === 0 && !isLoading && (
-        <div className="flex items-center justify-center h-48 text-gray-600">
+        <div className="flex items-center justify-center h-48 text-hmu-secondary dark:text-gray-600">
           {detailedActivities.length === 0
             ? <LoadingSpinner />
             : <p className="text-sm">No 1-mile best efforts found in your runs.</p>
@@ -173,19 +173,19 @@ export function StrongestMileViz({ detailProgress }: Props) {
             <svg ref={svgRef} className="w-full" />
             <div
               ref={tooltipRef}
-              className="pointer-events-none absolute hidden rounded-lg border border-gray-700 bg-gray-900 p-3 shadow-xl"
+              className="pointer-events-none absolute hidden rounded-lg border border-hmu-tertiary dark:border-gray-700 bg-hmu-surface dark:bg-gray-900 p-3 shadow-xl"
               style={{ minWidth: '180px' }}
             />
           </div>
 
           <div className="mt-6">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-hmu-secondary dark:text-gray-500">
               Top 10 Strongest Miles
             </h4>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-800 text-gray-500">
+                  <tr className="border-b border-hmu-tertiary dark:border-gray-800 text-hmu-secondary dark:text-gray-500">
                     <th className="text-left py-2 pr-4">Activity</th>
                     <th className="text-left py-2 pr-4">Date</th>
                     <th className="text-right py-2 pr-4">Pace</th>
@@ -197,8 +197,8 @@ export function StrongestMileViz({ detailProgress }: Props) {
                 </thead>
                 <tbody>
                   {entries.slice(0, 10).map((e, i) => (
-                    <tr key={e.activityId} className="border-b border-gray-800 text-gray-300 hover:bg-gray-800">
-                      <td className="py-2 pr-4 text-white">
+                    <tr key={e.activityId} className="border-b border-hmu-tertiary dark:border-gray-800 text-hmu-primary dark:text-gray-300 hover:bg-hmu-surface-alt dark:hover:bg-gray-800">
+                      <td className="py-2 pr-4 text-hmu-primary dark:text-white">
                         {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : `${i + 1}. `}
                         {e.activityName}
                         {e.isPR && <span className="ml-1 text-yellow-400">⭐</span>}

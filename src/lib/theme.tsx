@@ -4,11 +4,8 @@
  * Uses Tailwind's `darkMode: 'class'` strategy. The `dark` class is applied
  * to <html> so all `dark:` variants in components work automatically.
  *
- * To add light-mode styles to a component, prefix them with `dark:`:
- *   className="bg-white dark:bg-gray-900"
- *
- * Future work: fill in the light-mode palette and flip the defaults.
- * For now, dark is the only fully-styled mode.
+ * Default is light mode using the HMU brand palette (cream/olive/gold).
+ * Dark mode overrides use `dark:` prefixes on individual class names.
  */
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
@@ -22,7 +19,7 @@ function getInitialTheme(): Theme {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'light' || stored === 'dark') return stored
   } catch { /* ignore */ }
-  return 'dark'
+  return 'light'
 }
 
 function applyTheme(theme: Theme) {

@@ -8,7 +8,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-800 bg-gray-900 px-4">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 px-4">
 
       {/* Brand */}
       <div className="flex items-center gap-3">
@@ -18,11 +18,11 @@ export function Header() {
           className="h-8 w-8 rounded object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
-        <span className="text-base font-bold tracking-tight text-white">
+        <span className="text-base font-bold tracking-tight text-hmu-primary dark:text-white">
           HelpMeUltra
         </span>
         {athlete && (
-          <span className="hidden text-sm text-gray-400 sm:block">
+          <span className="hidden text-sm text-hmu-secondary dark:text-gray-400 sm:block">
             {athlete.firstname} {athlete.lastname}
           </span>
         )}
@@ -34,7 +34,7 @@ export function Header() {
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          className="flex h-7 w-7 items-center justify-center rounded text-gray-500 hover:text-gray-300 transition-colors"
+          className="flex h-7 w-7 items-center justify-center rounded text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300 transition-colors"
         >
           {theme === 'dark' ? (
             /* Sun icon */
@@ -56,7 +56,7 @@ export function Header() {
 
         <button
           onClick={logout}
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          className="text-xs text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300 transition-colors"
         >
           Sign out
         </button>
