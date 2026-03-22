@@ -20,10 +20,20 @@ interface Props {
 export function ActivityFeed({ zoneProgress }: Props) {
   const { data: activities, isLoading, error } = useActivities()
 
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filter, setFilter] = useState<Filter>('foot')
   const [hideRows, setHideRows] = useState<boolean>(() => {
     try { return localStorage.getItem('hmu:hide-rows') === 'true' } catch { return false }
   })
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set())
+
+  function toggleWeek(weekKey: string) {
+    setExpandedWeeks((prev) => {
+      const next = new Set(prev)
+      if (next.has(weekKey)) next.delete(weekKey)
+      else next.add(weekKey)
+      return next
+    })
+  }
 
   const filtered = useMemo(() => {
     if (!activities) return []
@@ -66,42 +76,71 @@ export function ActivityFeed({ zoneProgress }: Props) {
   return (
     <div className="flex flex-col">
 
-      {/* ── Top bar: filters · hide-rows checkbox · zone legend ─────────── */}
-      <div className="flex items-center justify-between gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4 py-2">
-        <div className="flex items-center gap-3 shrink-0">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                filter === f.id
-                  ? 'bg-hmu-primary dark:bg-orange-500 text-white'
-                  : 'text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* ── Sticky header: filter bar + column labels ───────────────────── */}
+      {/*
+        Combined into one sticky block so both rows stay visible while scrolling.
+        Total height: h-10 (filter row, 40px) + h-9 (column labels, 36px) = 76px.
+        WeeklySummaryRow uses top-[76px] to stick directly below this.
+      */}
+      <div className="sticky top-0 z-20 bg-hmu-surface dark:bg-gray-900 shadow-sm">
 
-          <div className="w-px h-4 bg-hmu-tertiary dark:bg-gray-700" />
+        {/* Row 1: filters · checkbox · zone legend */}
+        <div className="h-10 flex items-center justify-between gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4">
+          <div className="flex items-center gap-3 shrink-0">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                  filter === f.id
+                    ? 'bg-hmu-primary dark:bg-orange-500 text-white'
+                    : 'text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
 
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={hideRows}
-              onChange={toggleHideRows}
-              className="h-3.5 w-3.5 accent-hmu-primary rounded"
-            />
-            <span className="text-xs text-hmu-secondary dark:text-gray-500">
-              Weekly view only
-            </span>
-          </label>
+            <div className="w-px h-4 bg-hmu-tertiary dark:bg-gray-700" />
+
+            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={hideRows}
+                onChange={toggleHideRows}
+                className="h-3.5 w-3.5 accent-hmu-primary rounded"
+              />
+              <span className="text-xs text-hmu-secondary dark:text-gray-500">
+                Weekly view only
+              </span>
+            </label>
+          </div>
+
+          <ZoneLegend />
         </div>
 
-        <ZoneLegend />
+        {/* Row 2: column labels */}
+        <div className="h-9 flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4">
+          <div className="flex-1 min-w-0 text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
+            Activity
+          </div>
+          <div className="flex shrink-0 items-center">
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Time</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Dist</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Elev</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-purple-400`}>HR</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400`}>Pace</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-teal-500 dark:text-teal-400`}>GAP</div>
+            <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-accent dark:text-yellow-400`}>Effort</div>
+          </div>
+          <div className="w-72 shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
+            HR Zones
+          </div>
+        </div>
+
       </div>
 
-      {/* ── Cache / loading status bar ──────────────────────────────────── */}
+      {/* ── Cache / loading status bar (scrolls away) ───────────────────── */}
       <div className="flex items-center justify-end gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900/40 px-4 py-1.5 text-xs text-hmu-secondary dark:text-gray-600">
         {isFetchingZones && zoneProgress && (
           <>
@@ -126,30 +165,6 @@ export function ActivityFeed({ zoneProgress }: Props) {
         )}
       </div>
 
-      {/* ── Column header ────────────────────────────────────────────────── */}
-      {/*
-        sticky top-0 z-20 — sticks at the very top of the scroll container.
-        h-9 (36px) is a fixed height so WeeklySummaryRow can use top-9 to
-        stick precisely below it without measuring the DOM.
-      */}
-      <div className="sticky top-0 z-20 h-9 flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 px-4">
-        <div className="flex-1 min-w-0 text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
-          Activity
-        </div>
-        <div className="flex shrink-0 items-center">
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Time</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Dist</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-primary dark:text-gray-300`}>Elev</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-purple-400`}>HR</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400`}>Pace</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-teal-500 dark:text-teal-400`}>GAP</div>
-          <div className={`${STAT_COL} text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-accent dark:text-yellow-400`}>Effort</div>
-        </div>
-        <div className="w-48 shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
-          HR Zones
-        </div>
-      </div>
-
       {/* ── Week sections ────────────────────────────────────────────────── */}
       {/*
         Each <section> is the CSS containing block for its WeeklySummaryRow's
@@ -158,14 +173,23 @@ export function ActivityFeed({ zoneProgress }: Props) {
         past that threshold — pushing the next section's row into place.
         No JS/IntersectionObserver needed.
       */}
-      {weekGroups.map((group) => (
-        <section key={group.weekKey}>
-          <WeeklySummaryRow group={group} sticky={!hideRows} />
-          {!hideRows && group.activities.map((a) => (
-            <ActivityCard key={a.id} activity={a} />
-          ))}
-        </section>
-      ))}
+      {weekGroups.map((group) => {
+        const isExpanded = expandedWeeks.has(group.weekKey)
+        const showActivities = !hideRows || isExpanded
+        return (
+          <section key={group.weekKey}>
+            <WeeklySummaryRow
+              group={group}
+              sticky={!hideRows && !isExpanded}
+              onToggle={hideRows ? () => toggleWeek(group.weekKey) : undefined}
+              isExpanded={isExpanded}
+            />
+            {showActivities && group.activities.map((a) => (
+              <ActivityCard key={a.id} activity={a} />
+            ))}
+          </section>
+        )
+      })}
 
       {weekGroups.length === 0 && (
         <p className="py-10 text-center text-sm text-hmu-secondary dark:text-gray-500">

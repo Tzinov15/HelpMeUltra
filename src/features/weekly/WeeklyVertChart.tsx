@@ -3,14 +3,14 @@ import * as d3 from 'd3'
 import type { WeekChartPoint } from './hooks/useWeeklyChartData'
 
 const WEEKS = 26
-const MARGIN = { top: 16, right: 16, bottom: 48, left: 52 }
+const MARGIN = { top: 16, right: 16, bottom: 48, left: 60 }
 const HEIGHT = 220
 
 interface Props {
   data: WeekChartPoint[]
 }
 
-export function WeeklyMileageChart({ data }: Props) {
+export function WeeklyVertChart({ data }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -30,9 +30,9 @@ export function WeeklyMileageChart({ data }: Props) {
 
       const svg = el.append('g').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`)
 
-      const maxMiles = d3.max(weeks, (w) => w.mileage) ?? 10
+      const maxFt = d3.max(weeks, (w) => w.elevFt) ?? 1000
       const x = d3.scaleBand().domain(weeks.map((w) => w.weekKey)).range([0, innerW]).padding(0.1)
-      const y = d3.scaleLinear().domain([0, maxMiles * 1.1]).nice().range([innerH, 0])
+      const y = d3.scaleLinear().domain([0, maxFt * 1.1]).nice().range([innerH, 0])
 
       // Gridlines
       svg.append('g')
@@ -46,25 +46,25 @@ export function WeeklyMileageChart({ data }: Props) {
       const area = d3.area<WeekChartPoint>()
         .x((d) => (x(d.weekKey) ?? 0) + x.bandwidth() / 2)
         .y0(innerH)
-        .y1((d) => y(d.mileage))
+        .y1((d) => y(d.elevFt))
         .curve(d3.curveMonotoneX)
 
       svg.append('path')
         .datum(weeks)
-        .attr('fill', '#E9BE77')
+        .attr('fill', '#99f6e4')
         .attr('opacity', 0.25)
         .attr('d', area)
 
       // Line
       const line = d3.line<WeekChartPoint>()
         .x((d) => (x(d.weekKey) ?? 0) + x.bandwidth() / 2)
-        .y((d) => y(d.mileage))
+        .y((d) => y(d.elevFt))
         .curve(d3.curveMonotoneX)
 
       svg.append('path')
         .datum(weeks)
         .attr('fill', 'none')
-        .attr('stroke', '#566827')
+        .attr('stroke', '#0d9488')
         .attr('stroke-width', 2)
         .attr('d', line)
 
@@ -74,11 +74,11 @@ export function WeeklyMileageChart({ data }: Props) {
         .join('circle')
         .attr('class', 'dot')
         .attr('cx', (d) => (x(d.weekKey) ?? 0) + x.bandwidth() / 2)
-        .attr('cy', (d) => y(d.mileage))
+        .attr('cy', (d) => y(d.elevFt))
         .attr('r', 3)
-        .attr('fill', '#566827')
+        .attr('fill', '#0d9488')
         .append('title')
-        .text((d) => `${d.label}: ${d.mileage.toFixed(1)} mi`)
+        .text((d) => `${d.label}: ${Math.round(d.elevFt).toLocaleString()} ft`)
 
       // X axis — every 4th week label
       svg.append('g')
@@ -95,9 +95,13 @@ export function WeeklyMileageChart({ data }: Props) {
           g.selectAll('.tick line').attr('stroke', '#DBC292')
         })
 
-      // Y axis
+      // Y axis — "12k ft" format
       svg.append('g')
-        .call(d3.axisLeft(y).ticks(5).tickFormat((d) => `${d}mi`))
+        .call(
+          d3.axisLeft(y).ticks(5).tickFormat((d) =>
+            +d >= 1000 ? `${(+d / 1000).toFixed(0)}k ft` : `${d} ft`
+          )
+        )
         .call((g) => {
           g.select('.domain').remove()
           g.selectAll('text').attr('fill', '#8B9953').attr('font-size', '11px')

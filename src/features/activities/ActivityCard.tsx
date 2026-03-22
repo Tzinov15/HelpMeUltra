@@ -147,7 +147,7 @@ export function ActivityCard({ activity: a }: Props) {
       </div>
 
       {/* ── RIGHT: HR zone bar ─────────────────────────────────────────── */}
-      <div className="w-48 shrink-0">
+      <div className="w-72 shrink-0">
         {hrZone ? (
           <HRZoneBar buckets={hrZone.distribution_buckets} height="h-4" />
         ) : (
