@@ -123,7 +123,7 @@ export function ActivityCard({ activity: a }: Props) {
         <StatCell
           value={hr != null ? hr.toString() : ''}
           label="bpm"
-          color="text-red-400"
+          color="text-purple-400"
           visible={hr != null}
         />
         <StatCell
