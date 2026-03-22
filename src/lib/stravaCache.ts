@@ -1,22 +1,25 @@
 /**
  * Typed localStorage cache for Strava data.
  *
- * Design goals:
+ * Design:
  *  - Zero dependencies — plain JSON in localStorage
  *  - Versioned: bump CACHE_VERSION to invalidate all entries on schema changes
- *  - Two flavours:
- *      SingleCache<T>     — one key, one value  (e.g. the full activities array)
- *      ActivityMapCache<T> — one key per activity id  (e.g. zones, detail)
- *  - Both expose `.get()`, `.set()`, `.has()`, `.clear()`, `.cachedAt()`
+ *  - Two factory functions:
+ *      makeSingleCache<T>      — one key, one value  (e.g. the full activities array)
+ *      makeActivityMapCache<T> — one key per activity id  (e.g. zones, detail)
  */
+
+import type { SummaryActivity } from '@/features/activities/hooks/useActivities'
+import type { ActivityZone } from '@/features/zones/hooks/useActivityZones'
+import type { DetailedActivity } from '@/features/activities/hooks/useActivityDetail'
 
 const CACHE_VERSION = 'v1'
 
 // ─── Internal envelope ────────────────────────────────────────────────────────
 
 interface CacheEnvelope<T> {
-  v: string       // cache version
-  ts: number      // ms since epoch when written
+  v: string    // schema version — bump to bust all entries
+  ts: number   // ms since epoch when written
   data: T
 }
 
@@ -35,93 +38,92 @@ function unwrap<T>(raw: string | null): { data: T; ts: number } | null {
   }
 }
 
-// ─── SingleCache ──────────────────────────────────────────────────────────────
+// ─── SingleCache factory ──────────────────────────────────────────────────────
 
-export class SingleCache<T> {
-  constructor(private readonly key: string) {}
+export interface SingleCache<T> {
+  get(): { data: T; ts: number } | null
+  getData(): T | undefined
+  set(data: T): void
+  has(): boolean
+  cachedAt(): number | null
+  clear(): void
+}
 
-  get(): { data: T; ts: number } | null {
-    return unwrap<T>(localStorage.getItem(this.key))
-  }
-
-  getData(): T | undefined {
-    return this.get()?.data
-  }
-
-  set(data: T): void {
-    localStorage.setItem(this.key, JSON.stringify(wrap(data)))
-  }
-
-  has(): boolean {
-    return this.get() !== null
-  }
-
-  cachedAt(): number | null {
-    return this.get()?.ts ?? null
-  }
-
-  clear(): void {
-    localStorage.removeItem(this.key)
+export function makeSingleCache<T>(key: string): SingleCache<T> {
+  return {
+    get() {
+      return unwrap<T>(localStorage.getItem(key))
+    },
+    getData() {
+      return unwrap<T>(localStorage.getItem(key))?.data
+    },
+    set(data: T) {
+      localStorage.setItem(key, JSON.stringify(wrap(data)))
+    },
+    has() {
+      return unwrap<T>(localStorage.getItem(key)) !== null
+    },
+    cachedAt() {
+      return unwrap<T>(localStorage.getItem(key))?.ts ?? null
+    },
+    clear() {
+      localStorage.removeItem(key)
+    },
   }
 }
 
-// ─── ActivityMapCache ─────────────────────────────────────────────────────────
+// ─── ActivityMapCache factory ─────────────────────────────────────────────────
 
-export class ActivityMapCache<T> {
-  constructor(private readonly prefix: string) {}
+export interface ActivityMapCache<T> {
+  get(id: number): T | null
+  set(id: number, data: T): void
+  has(id: number): boolean
+  clear(id: number): void
+  clearAll(): void
+  count(): number
+}
 
-  private key(id: number): string {
-    return `${this.prefix}:${id}`
-  }
+export function makeActivityMapCache<T>(prefix: string): ActivityMapCache<T> {
+  const key = (id: number) => `${prefix}:${id}`
 
-  get(id: number): T | null {
-    return unwrap<T>(localStorage.getItem(this.key(id)))?.data ?? null
-  }
-
-  set(id: number, data: T): void {
-    localStorage.setItem(this.key(id), JSON.stringify(wrap(data)))
-  }
-
-  has(id: number): boolean {
-    return this.get(id) !== null
-  }
-
-  /** Remove a single entry */
-  clear(id: number): void {
-    localStorage.removeItem(this.key(id))
-  }
-
-  /** Remove all entries whose keys start with this prefix */
-  clearAll(): void {
-    const toRemove: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i)
-      if (k?.startsWith(this.prefix)) toRemove.push(k)
-    }
-    toRemove.forEach((k) => localStorage.removeItem(k))
-  }
-
-  /** How many ids are cached */
-  count(): number {
-    let n = 0
-    for (let i = 0; i < localStorage.length; i++) {
-      if (localStorage.key(i)?.startsWith(this.prefix)) n++
-    }
-    return n
+  return {
+    get(id) {
+      return unwrap<T>(localStorage.getItem(key(id)))?.data ?? null
+    },
+    set(id, data) {
+      localStorage.setItem(key(id), JSON.stringify(wrap(data)))
+    },
+    has(id) {
+      return unwrap<T>(localStorage.getItem(key(id))) !== null
+    },
+    clear(id) {
+      localStorage.removeItem(key(id))
+    },
+    clearAll() {
+      const toRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        if (k?.startsWith(prefix)) toRemove.push(k)
+      }
+      toRemove.forEach((k) => localStorage.removeItem(k))
+    },
+    count() {
+      let n = 0
+      for (let i = 0; i < localStorage.length; i++) {
+        if (localStorage.key(i)?.startsWith(prefix)) n++
+      }
+      return n
+    },
   }
 }
 
 // ─── Named stores (import these everywhere) ───────────────────────────────────
 
-import type { SummaryActivity } from '@/features/activities/hooks/useActivities'
-import type { ActivityZone } from '@/features/zones/hooks/useActivityZones'
-import type { DetailedActivity } from '@/features/activities/hooks/useActivityDetail'
+/** Full paginated activity list for the lookback window */
+export const activitiesCache = makeSingleCache<SummaryActivity[]>('strava:activities')
 
-/** Full paginated list of activities for the lookback window */
-export const activitiesCache = new SingleCache<SummaryActivity[]>('strava:activities')
+/** Per-activity HR zone distribution  (GET /activities/{id}/zones) */
+export const zonesCache = makeActivityMapCache<ActivityZone[]>('strava:zones')
 
-/** Per-activity HR zone distribution  GET /activities/{id}/zones */
-export const zonesCache = new ActivityMapCache<ActivityZone[]>('strava:zones')
-
-/** Per-activity detailed data with best_efforts  GET /activities/{id} */
-export const detailCache = new ActivityMapCache<DetailedActivity>('strava:detail')
+/** Per-activity detail with best_efforts  (GET /activities/{id}) */
+export const detailCache = makeActivityMapCache<DetailedActivity>('strava:detail')

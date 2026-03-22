@@ -42,7 +42,7 @@ export function DashboardPage() {
       {seasonStats && (
         <div className="flex items-center gap-8 border-b border-gray-800 bg-gray-900 px-6 py-3">
           <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-            2yr totals
+            12mo totals
           </span>
           <StatBadge
             label="Run Miles"
