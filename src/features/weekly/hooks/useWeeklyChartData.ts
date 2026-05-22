@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { startOfWeek, endOfWeek, format } from 'date-fns'
+import { parseLocalDate } from '@/utils/date'
 import { zonesCache } from '@/lib/stravaCache'
 import { ON_FOOT_TYPES } from '@/lib/strava/formatters'
 import type { SummaryActivity } from '@/features/activities/hooks/useActivities'
@@ -8,6 +9,7 @@ export interface WeekChartPoint {
   weekKey: string
   label: string   // "Mar 3–Mar 9"
   startDate: Date
+  endDate: Date
   /** On-foot miles */
   mileage: number
   /** On-foot elevation in feet */
@@ -28,7 +30,7 @@ export function useWeeklyChartData(activities: SummaryActivity[] | undefined): W
     const map = new Map<string, WeekChartPoint>()
 
     for (const a of activities) {
-      const date = new Date(a.start_date_local)
+      const date = parseLocalDate(a.start_date_local)
       const weekStart = startOfWeek(date, { weekStartsOn: 1 })
       const wk = format(weekStart, 'yyyy-MM-dd')
 
@@ -38,6 +40,7 @@ export function useWeeklyChartData(activities: SummaryActivity[] | undefined): W
           weekKey: wk,
           label: `${format(weekStart, 'MMM d')}–${format(weekEnd, 'MMM d')}`,
           startDate: weekStart,
+          endDate: weekEnd,
           mileage: 0,
           elevFt: 0,
           zoneTimes: [0, 0, 0, 0, 0],

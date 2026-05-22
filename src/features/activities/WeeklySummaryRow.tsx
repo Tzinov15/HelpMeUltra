@@ -54,6 +54,17 @@ interface Props {
 export function WeeklySummaryRow({ group, sticky, onToggle, isExpanded = false }: Props) {
   return (
     <div
+      onClick={onToggle}
+      onKeyDown={onToggle ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle()
+        }
+      } : undefined}
+      role={onToggle ? 'button' : undefined}
+      tabIndex={onToggle ? 0 : undefined}
+      aria-expanded={onToggle ? isExpanded : undefined}
+      title={onToggle ? (isExpanded ? 'Collapse week' : 'Expand week') : undefined}
       className={clsx(
         // Layout — matches ActivityCard's gap-4 px-4
         'flex items-center gap-4 px-4 py-2.5',
@@ -65,15 +76,15 @@ export function WeeklySummaryRow({ group, sticky, onToggle, isExpanded = false }
         // Each <section> is the containing block, so the row unsticks naturally
         // when scrolling past the last activity in that week.
         sticky && 'sticky top-[76px] z-10',
+        onToggle && 'cursor-pointer hover:bg-hmu-surface dark:hover:bg-gray-800',
       )}
     >
       {/* ── LEFT: week label — matches ActivityCard's flex-1 min-w-0 ───── */}
       <div className="min-w-0 flex-1 flex items-center gap-2">
         {onToggle && (
-          <button
-            onClick={onToggle}
-            className="shrink-0 text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-white transition-colors"
-            title={isExpanded ? 'Collapse week' : 'Expand week'}
+          <span
+            className="shrink-0 text-hmu-secondary dark:text-gray-400"
+            aria-hidden="true"
           >
             <svg
               className={clsx('h-3.5 w-3.5 transition-transform duration-150', isExpanded && 'rotate-180')}
@@ -81,12 +92,9 @@ export function WeeklySummaryRow({ group, sticky, onToggle, isExpanded = false }
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-          </button>
+          </span>
         )}
-        <div
-          className={clsx('min-w-0', onToggle && 'cursor-pointer')}
-          onClick={onToggle}
-        >
+        <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-wider text-hmu-primary dark:text-gray-100">
             {group.label}
           </div>

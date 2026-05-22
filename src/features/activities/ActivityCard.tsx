@@ -1,5 +1,6 @@
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { clsx } from 'clsx'
+import { parseLocalDate } from '@/utils/date'
 import { HRZoneBar } from '@/features/zones/HRZoneBar'
 import { useActivityZones } from '@/features/zones/hooks/useActivityZones'
 import {
@@ -97,7 +98,7 @@ export function ActivityCard({ activity: a }: Props) {
           </a>
         </div>
         <div className="mt-0.5 text-xs text-hmu-secondary dark:text-gray-500">
-          {format(parseISO(a.start_date_local), 'EEE, MMM d yyyy')}
+          {format(parseLocalDate(a.start_date_local), 'EEE, MMM d yyyy')}
         </div>
       </div>
 
@@ -149,7 +150,7 @@ export function ActivityCard({ activity: a }: Props) {
       {/* ── RIGHT: HR zone bar ─────────────────────────────────────────── */}
       <div className="w-72 shrink-0">
         {hrZone ? (
-          <HRZoneBar buckets={hrZone.distribution_buckets} height="h-4" />
+          <HRZoneBar buckets={hrZone.distribution_buckets} height="h-4" showValues />
         ) : (
           <div className="h-4 w-full rounded bg-hmu-tertiary dark:bg-gray-800" />
         )}

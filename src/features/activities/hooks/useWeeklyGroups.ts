@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { startOfWeek, endOfWeek, format } from 'date-fns'
+import { parseLocalDate } from '@/utils/date'
 import { zonesCache } from '@/lib/stravaCache'
 import type { SummaryActivity } from './useActivities'
 import type { ZonePreloadState } from '@/features/zones/hooks/useZonePreloader'
@@ -40,7 +41,7 @@ export function useWeeklyGroups(
     const map = new Map<string, WeekGroup>()
 
     for (const a of activities) {
-      const date = new Date(a.start_date_local)
+      const date = parseLocalDate(a.start_date_local)
       const weekStart = startOfWeek(date, { weekStartsOn: 1 }) // Monday
       const weekKey = format(weekStart, 'yyyy-MM-dd')
 

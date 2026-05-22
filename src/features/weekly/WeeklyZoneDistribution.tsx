@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
 import type { WeekChartPoint } from './hooks/useWeeklyChartData'
 
@@ -14,9 +14,24 @@ interface Props {
   data: WeekChartPoint[]
 }
 
+interface TooltipState {
+  visible: boolean
+  x: number
+  y: number
+  week: WeekChartPoint | null
+}
+
+function formatHM(hours: number): string {
+  if (hours < 1 / 120) return '0m' // < 30s
+  const h = Math.floor(hours)
+  const m = Math.round((hours - h) * 60)
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
 export function WeeklyZoneDistribution({ data }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const [tip, setTip] = useState<TooltipState>({ visible: false, x: 0, y: 0, week: null })
 
   useEffect(() => {
     function draw() {
@@ -72,15 +87,32 @@ export function WeeklyZoneDistribution({ data }: Props) {
           .attr('width', x.bandwidth())
           .attr('fill', ZONE_COLORS[zi])
           .attr('rx', 1)
-          .append('title')
-          .text((d) => {
-            const hrs = d[1] - d[0]
-            const h = Math.floor(hrs)
-            const m = Math.round((hrs - h) * 60)
-            const label = weeks.find((w) => w.weekKey === d.data.weekKey)?.label ?? d.data.weekKey
-            return `${label}\n${ZONE_LABELS[zi]}: ${h > 0 ? `${h}h ` : ''}${m}m`
-          })
       })
+
+      // Transparent column-wide hover targets — one per week, full chart height.
+      // Sits on top of the bars so hovering anywhere in the column triggers the
+      // tooltip (not just the small segments).
+      const weekByKey = new Map(weeks.map((w) => [w.weekKey, w]))
+      const containerEl = containerRef.current
+      svg.append('g')
+        .attr('class', 'hover-targets')
+        .selectAll('rect')
+        .data(weeks)
+        .join('rect')
+        .attr('x', (w) => (x(w.weekKey) ?? 0) - x.step() * x.padding() / 2)
+        .attr('y', 0)
+        .attr('width', x.step())
+        .attr('height', innerH)
+        .attr('fill', 'transparent')
+        .style('cursor', 'pointer')
+        .on('mousemove', function (event, w) {
+          const week = weekByKey.get(w.weekKey) ?? null
+          const [px, py] = d3.pointer(event, containerEl)
+          setTip({ visible: true, x: px, y: py, week })
+        })
+        .on('mouseleave', () => {
+          setTip((t) => ({ ...t, visible: false }))
+        })
 
       // X axis — every 4th week label
       svg.append('g')
@@ -133,9 +165,46 @@ export function WeeklyZoneDistribution({ data }: Props) {
     return () => ro.disconnect()
   }, [data])
 
+  // Tooltip position — flip to the left of the cursor when too close to the
+  // right edge so it doesn't get clipped.
+  const TOOLTIP_W = 200
+  const flip = containerRef.current && tip.x + TOOLTIP_W + 16 > containerRef.current.clientWidth
+  const tipStyle: React.CSSProperties = {
+    left: flip ? tip.x - TOOLTIP_W - 12 : tip.x + 12,
+    top: Math.max(0, tip.y - 8),
+    width: TOOLTIP_W,
+  }
+
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="relative w-full">
       <svg ref={svgRef} className="w-full overflow-visible" />
+      {tip.visible && tip.week && (
+        <div
+          className="pointer-events-none absolute z-10 rounded-md border border-hmu-tertiary dark:border-gray-700 bg-hmu-surface dark:bg-gray-900 px-3 py-2 text-xs shadow-lg"
+          style={tipStyle}
+        >
+          <div className="mb-1.5 font-semibold text-hmu-primary dark:text-white">
+            {tip.week.label}
+          </div>
+          <div className="space-y-0.5">
+            {ZONE_LABELS.map((label, i) => {
+              const hrs = tip.week!.zoneTimes[i] / 3600
+              return (
+                <div key={i} className="flex items-center justify-between gap-2 text-hmu-secondary dark:text-gray-400">
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className="inline-block h-2 w-2 rounded-sm"
+                      style={{ backgroundColor: ZONE_COLORS[i] }}
+                    />
+                    {label}
+                  </span>
+                  <span className="tabular-nums">{formatHM(hrs)}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

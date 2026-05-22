@@ -20,7 +20,7 @@ interface Props {
 export function ActivityFeed({ zoneProgress }: Props) {
   const { data: activities, isLoading, error } = useActivities()
 
-  const [filter, setFilter] = useState<Filter>('foot')
+  const [filter, setFilter] = useState<Filter>('all')
   const [hideRows, setHideRows] = useState<boolean>(() => {
     try { return localStorage.getItem('hmu:hide-rows') === 'true' } catch { return false }
   })

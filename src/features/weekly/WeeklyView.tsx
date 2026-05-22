@@ -1,7 +1,7 @@
 import { useActivities } from '@/features/activities/hooks/useActivities'
 import { useWeeklyChartData } from './hooks/useWeeklyChartData'
-import { WeeklyMileageChart } from './WeeklyMileageChart'
-import { WeeklyVertChart } from './WeeklyVertChart'
+import { WeeklyMileageVertChart } from './WeeklyMileageVertChart'
+import { WeeklyZoneLineChart } from './WeeklyZoneLineChart'
 import { WeeklyZoneDistribution } from './WeeklyZoneDistribution'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
@@ -28,16 +28,22 @@ export function WeeklyView() {
 
       <div>
         <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
-          Weekly Mileage — On Foot · Last 26 Weeks
+          Weekly Mileage & Vertical — On Foot · Last 26 Weeks
         </h3>
-        <WeeklyMileageChart data={chartData} />
+        <WeeklyMileageVertChart data={chartData} />
       </div>
 
       <div className="border-t border-hmu-tertiary dark:border-gray-800 pt-8">
         <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
-          Weekly Vertical — On Foot · Last 26 Weeks
+          Weekly Easy Zone Time — Z1 & Z2 · Last 26 Weeks
         </h3>
-        <WeeklyVertChart data={chartData} />
+        <WeeklyZoneLineChart
+          data={chartData}
+          series={[
+            { zoneIndex: 0, label: 'Z1 Recovery', lineColor: '#64748b', fillColor: '#94a3b8' },
+            { zoneIndex: 1, label: 'Z2 Aerobic', lineColor: '#2563eb', fillColor: '#60a5fa' },
+          ]}
+        />
       </div>
 
       <div className="border-t border-hmu-tertiary dark:border-gray-800 pt-8">
