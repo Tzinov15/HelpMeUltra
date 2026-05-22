@@ -110,6 +110,16 @@ export function ActivityCard({ activity: a }: Props) {
         : 'bg-hmu-surface-alt dark:bg-gray-700 text-hmu-secondary dark:text-gray-300'
   )
 
+  // Subtle right-to-left tint behind the mobile title row — matches the badge color
+  const sportRowGradient = clsx(
+    'bg-gradient-to-r to-transparent',
+    isOnFoot(a.sport_type)
+      ? 'from-orange-100/70 dark:from-orange-900/30'
+      : isOnWheels(a.sport_type)
+        ? 'from-blue-100/70 dark:from-blue-900/30'
+        : 'from-hmu-surface-alt/70 dark:from-gray-700/30'
+  )
+
   return (
     <>
       {/* ──── DESKTOP (≥ md): single-row layout ──────────────────────── */}
@@ -152,10 +162,10 @@ export function ActivityCard({ activity: a }: Props) {
       </div>
 
       {/* ──── MOBILE (< md): three-line card ──────────────────────────── */}
-      <div className="md:hidden flex flex-col gap-2.5 border-b border-hmu-tertiary dark:border-gray-800 px-4 py-3">
+      <div className="md:hidden flex flex-col gap-2.5 border-b border-hmu-tertiary dark:border-gray-800 py-3">
 
-        {/* Row 1: title + date */}
-        <div className="min-w-0">
+        {/* Row 1: title + date — tinted gradient matches the sport badge color */}
+        <div className={clsx('min-w-0 px-4 py-1', sportRowGradient)}>
           <div className="flex items-center gap-2">
             <span className={sportBadgeColor}>{sportLabel(a.sport_type)}</span>
             <a
@@ -173,7 +183,7 @@ export function ActivityCard({ activity: a }: Props) {
         </div>
 
         {/* Row 2: time | dist | elev | HR */}
-        <div className="flex items-center justify-around border-y border-hmu-tertiary dark:border-gray-800 py-2">
+        <div className="mx-4 flex items-center justify-around border-y border-hmu-tertiary dark:border-gray-800 py-2">
           <MobileStat value={formatTimeCompact(a.moving_time)} label="time" visible={a.moving_time > 0} />
           <MobileStat value={miles ?? ''} label="mi" visible={miles != null} />
           <MobileStat value={elevFt != null ? elevFt.toLocaleString() : ''} label="ft" visible={elevFt != null} />
@@ -181,7 +191,7 @@ export function ActivityCard({ activity: a }: Props) {
         </div>
 
         {/* Row 3: zone bar + per-zone times */}
-        <div className="flex w-full flex-col gap-1.5">
+        <div className="flex w-full flex-col gap-1.5 px-4">
           {hrZone ? (
             <>
               <HRZoneBar buckets={hrZone.distribution_buckets} height="h-3" />
