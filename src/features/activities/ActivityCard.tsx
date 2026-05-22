@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { clsx } from 'clsx'
 import { parseLocalDate } from '@/utils/date'
-import { HRZoneBar } from '@/features/zones/HRZoneBar'
+import { HRZoneBar, ZoneTimeGrid } from '@/features/zones/HRZoneBar'
 import { useActivityZones } from '@/features/zones/hooks/useActivityZones'
 import {
   speedToPaceSecPerMile,
@@ -180,10 +180,13 @@ export function ActivityCard({ activity: a }: Props) {
           <MobileStat value={hr != null ? hr.toString() : ''} label="bpm" color="text-purple-400" visible={hr != null} />
         </div>
 
-        {/* Row 3: zone bar (no labels on mobile) */}
-        <div className="w-full">
+        {/* Row 3: zone bar + per-zone times */}
+        <div className="flex w-full flex-col gap-1.5">
           {hrZone ? (
-            <HRZoneBar buckets={hrZone.distribution_buckets} height="h-3" />
+            <>
+              <HRZoneBar buckets={hrZone.distribution_buckets} height="h-3" />
+              <ZoneTimeGrid secsPerZone={hrZone.distribution_buckets.map((b) => b.time)} />
+            </>
           ) : (
             <div className="h-3 w-full rounded bg-hmu-tertiary dark:bg-gray-800" />
           )}

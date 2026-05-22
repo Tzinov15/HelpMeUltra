@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { TopLevelNav } from '@/components/layout/TopLevelNav'
+import { InstallBanner } from '@/components/InstallBanner'
 import { useActivities } from '@/features/activities/hooks/useActivities'
 import { useAthlete } from '@/features/zones/hooks/useAthlete'
 import { useZonePreloader, type ZonePreloadState } from '@/features/zones/hooks/useZonePreloader'
@@ -55,6 +56,7 @@ export function DashboardPage() {
         syncing={syncing}
         lastSyncedAt={activitiesCache.cachedAt()}
       />
+      <InstallBanner />
       <TopLevelNav />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Outlet context={outletContext} />

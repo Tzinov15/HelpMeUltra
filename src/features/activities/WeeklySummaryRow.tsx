@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 import { STAT_COL } from './ActivityCard'
-import { HRZoneBar } from '@/features/zones/HRZoneBar'
+import { HRZoneBar, ZoneTimeGrid } from '@/features/zones/HRZoneBar'
 import type { WeekGroup } from './hooks/useWeeklyGroups'
 
 // Must match HRZoneBar's ZONE_COLORS exactly (bg-slate-400, bg-blue-400, etc.)
@@ -211,28 +211,11 @@ export function WeeklySummaryRow({ group, sticky, onToggle, isExpanded = false }
           </div>
         </div>
 
-        {/* Row 2: zone bar full-width */}
+        {/* Row 2: zone bar + Z1–Z5 totals */}
         {hasAnyZoneData && (
           <>
             <HRZoneBar buckets={zoneBuckets} height="h-2.5" />
-
-            {/* Row 3: Z1–Z5 totals in 5 equal columns */}
-            <div className="grid grid-cols-5">
-              {group.zoneTimes.map((secs, i) => (
-                <div
-                  key={i}
-                  className={clsx(
-                    'flex flex-col items-center gap-0.5',
-                    i < 4 && 'border-r border-hmu-tertiary dark:border-gray-700/50',
-                  )}
-                >
-                  <span className={clsx('text-[10px] font-bold leading-none', ZONE_COLORS_TEXT[i])}>
-                    Z{i + 1}
-                  </span>
-                  <ZoneTimeValue secs={secs} color={ZONE_COLORS_TEXT[i]} />
-                </div>
-              ))}
-            </div>
+            <ZoneTimeGrid secsPerZone={group.zoneTimes} />
           </>
         )}
       </div>

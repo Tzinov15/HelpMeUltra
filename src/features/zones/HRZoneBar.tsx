@@ -21,6 +21,43 @@ function formatZoneTime(secs: number): string {
   return h > 0 ? `${h}h${m}m` : `${m}m`
 }
 
+/**
+ * 5-column Z1–Z5 grid showing each zone's label + time. Used below
+ * mobile zone bars (activity row + weekly summary).
+ */
+export function ZoneTimeGrid({ secsPerZone }: { secsPerZone: number[] }) {
+  return (
+    <div className="grid grid-cols-5">
+      {[0, 1, 2, 3, 4].map((i) => {
+        const secs = secsPerZone[i] ?? 0
+        const dim = secs < 30
+        return (
+          <div
+            key={i}
+            className={clsx(
+              'flex flex-col items-center gap-0.5',
+              i < 4 && 'border-r border-hmu-tertiary dark:border-gray-700/50',
+            )}
+          >
+            <span className={clsx('text-[10px] font-bold leading-none', ZONE_TEXT_COLORS[i])}>
+              Z{i + 1}
+            </span>
+            <span
+              className={clsx(
+                'text-[13px] font-bold tabular-nums leading-none',
+                ZONE_TEXT_COLORS[i],
+                dim && 'opacity-50',
+              )}
+            >
+              {formatZoneTime(secs)}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function HRZoneBar({ buckets, showLabels = false, showValues = false, height = 'h-3' }: Props) {
   const total = useMemo(() => buckets.reduce((s, b) => s + b.time, 0), [buckets])
 

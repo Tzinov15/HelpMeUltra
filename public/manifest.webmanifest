@@ -1,0 +1,25 @@
+{
+  "name": "HelpMeUltra",
+  "short_name": "HelpMeUltra",
+  "description": "Strava-powered training visualization",
+  "start_url": "/wherewevebeen",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4ECD8",
+  "theme_color": "#566827",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
