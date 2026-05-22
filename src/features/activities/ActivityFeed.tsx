@@ -85,13 +85,13 @@ export function ActivityFeed({ zoneProgress }: Props) {
       <div className="sticky top-0 z-20 bg-hmu-surface dark:bg-gray-900 shadow-sm">
 
         {/* Row 1: filters · checkbox · zone legend */}
-        <div className="h-10 flex items-center justify-between gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4">
-          <div className="flex items-center gap-3 shrink-0">
+        <div className="h-10 flex items-center justify-between gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-3 md:px-4">
+          <div className="flex items-center gap-2 md:gap-3 shrink-0 overflow-x-auto">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id)}
-                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                className={`shrink-0 rounded px-2.5 md:px-3 py-1 text-xs font-medium transition-colors ${
                   filter === f.id
                     ? 'bg-hmu-primary dark:bg-orange-500 text-white'
                     : 'text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300'
@@ -103,7 +103,7 @@ export function ActivityFeed({ zoneProgress }: Props) {
 
             <div className="w-px h-4 bg-hmu-tertiary dark:bg-gray-700" />
 
-            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <label className="flex shrink-0 items-center gap-1.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={hideRows}
@@ -111,16 +111,19 @@ export function ActivityFeed({ zoneProgress }: Props) {
                 className="h-3.5 w-3.5 accent-hmu-primary rounded"
               />
               <span className="text-xs text-hmu-secondary dark:text-gray-500">
-                Weekly view only
+                <span className="hidden md:inline">Weekly view only</span>
+                <span className="md:hidden">Weekly only</span>
               </span>
             </label>
           </div>
 
-          <ZoneLegend />
+          <div className="hidden md:block">
+            <ZoneLegend />
+          </div>
         </div>
 
-        {/* Row 2: column labels */}
-        <div className="h-9 flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4">
+        {/* Row 2: column labels — desktop only (mobile uses card layout) */}
+        <div className="hidden md:flex h-9 items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4">
           <div className="flex-1 min-w-0 text-[10px] font-semibold uppercase tracking-widest text-hmu-secondary dark:text-gray-500">
             Activity
           </div>
@@ -141,13 +144,15 @@ export function ActivityFeed({ zoneProgress }: Props) {
       </div>
 
       {/* ── Cache / loading status bar (scrolls away) ───────────────────── */}
-      <div className="flex items-center justify-end gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900/40 px-4 py-1.5 text-xs text-hmu-secondary dark:text-gray-600">
+      <div className="flex items-center justify-end gap-3 md:gap-4 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900/40 px-3 md:px-4 py-1.5 text-[11px] md:text-xs text-hmu-secondary dark:text-gray-600">
         {isFetchingZones && zoneProgress && (
           <>
             <span className="text-hmu-secondary dark:text-gray-500">
-              Loading zones {zoneProgress.loaded}/{zoneProgress.total}…
+              <span className="hidden md:inline">Loading zones </span>
+              <span className="md:hidden">Zones </span>
+              {zoneProgress.loaded}/{zoneProgress.total}…
             </span>
-            <div className="w-24 rounded-full bg-hmu-tertiary dark:bg-gray-800 h-1">
+            <div className="w-16 md:w-24 rounded-full bg-hmu-tertiary dark:bg-gray-800 h-1">
               <div
                 className="rounded-full bg-hmu-primary dark:bg-orange-600 h-1 transition-all duration-300"
                 style={{ width: `${(zoneProgress.loaded / zoneProgress.total) * 100}%` }}
@@ -156,11 +161,12 @@ export function ActivityFeed({ zoneProgress }: Props) {
           </>
         )}
         {!isFetchingZones && zoneProgress?.done && (
-          <span>{zonesCached}/{zonesTotal} zones cached</span>
+          <span className="hidden md:inline">{zonesCached}/{zonesTotal} zones cached</span>
         )}
         {cachedAt && (
           <span title={new Date(cachedAt).toLocaleString()}>
-            Updated {format(new Date(cachedAt), 'MMM d, h:mm a')}
+            <span className="hidden md:inline">Updated </span>
+            {format(new Date(cachedAt), 'MMM d, h:mm a')}
           </span>
         )}
       </div>

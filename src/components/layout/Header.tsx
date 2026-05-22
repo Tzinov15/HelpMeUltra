@@ -23,35 +23,35 @@ export function Header({ onSync, syncing, lastSyncedAt }: Props) {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 px-4">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface dark:bg-gray-900 px-3 md:px-4">
 
       {/* Brand */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <img
           src="/logo.png"
           alt="HelpMeUltra"
-          className="h-8 w-8 rounded object-contain"
+          className="h-8 w-8 shrink-0 rounded object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
-        <span className="text-base font-bold tracking-tight text-hmu-primary dark:text-white">
+        <span className="truncate text-sm md:text-base font-bold tracking-tight text-hmu-primary dark:text-white">
           HelpMeUltra
         </span>
         {athlete && (
-          <span className="hidden text-sm text-hmu-secondary dark:text-gray-400 sm:block">
+          <span className="hidden text-sm text-hmu-secondary dark:text-gray-400 sm:block truncate">
             {athlete.firstname} {athlete.lastname}
           </span>
         )}
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
         {/* Sync button */}
         {onSync && (
           <button
             onClick={onSync}
             disabled={syncing}
             title="Sync latest data from Strava"
-            className="flex items-center gap-1.5 rounded-lg border border-hmu-tertiary dark:border-gray-700 px-2.5 py-1 text-xs font-medium text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-gray-200 hover:border-hmu-secondary dark:hover:border-gray-500 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-hmu-tertiary dark:border-gray-700 px-2 md:px-2.5 py-1 text-xs font-medium text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-gray-200 hover:border-hmu-secondary dark:hover:border-gray-500 transition-colors disabled:opacity-50"
           >
             <svg
               className={`h-3 w-3 ${syncing ? 'animate-spin' : ''}`}
@@ -59,7 +59,7 @@ export function Header({ onSync, syncing, lastSyncedAt }: Props) {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <span>{syncing ? 'Syncing…' : lastSyncedAt ? formatSyncAge(lastSyncedAt) : 'Sync'}</span>
+            <span className="hidden xs:inline">{syncing ? 'Syncing…' : lastSyncedAt ? formatSyncAge(lastSyncedAt) : 'Sync'}</span>
           </button>
         )}
         {/* Theme toggle — dark/light */}
@@ -83,12 +83,12 @@ export function Header({ onSync, syncing, lastSyncedAt }: Props) {
         </button>
 
         {athlete?.profile_medium && (
-          <img src={athlete.profile_medium} alt="avatar" className="h-7 w-7 rounded-full" />
+          <img src={athlete.profile_medium} alt="avatar" className="hidden md:block h-7 w-7 rounded-full" />
         )}
 
         <button
           onClick={logout}
-          className="text-xs text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300 transition-colors"
+          className="hidden md:inline text-xs text-hmu-secondary dark:text-gray-500 hover:text-hmu-primary dark:hover:text-gray-300 transition-colors"
         >
           Sign out
         </button>

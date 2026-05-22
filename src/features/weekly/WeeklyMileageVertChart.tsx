@@ -32,6 +32,19 @@ export function WeeklyMileageVertChart({ data, mode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [tip, setTip] = useState<TipState>({ visible: false, x: 0, y: 0, week: null })
 
+  // Tap outside the chart dismisses a pinned tooltip on touch devices
+  useEffect(() => {
+    if (!tip.visible) return
+    function onDocDown(e: PointerEvent) {
+      const c = containerRef.current
+      if (c && !c.contains(e.target as Node)) {
+        setTip((t) => ({ ...t, visible: false }))
+      }
+    }
+    document.addEventListener('pointerdown', onDocDown)
+    return () => document.removeEventListener('pointerdown', onDocDown)
+  }, [tip.visible])
+
   const showMi = mode === 'combined' || mode === 'mileage'
   const showFt = mode === 'combined' || mode === 'vert'
 
@@ -139,7 +152,7 @@ export function WeeklyMileageVertChart({ data, mode }: Props) {
         .attr('height', innerH)
         .attr('fill', 'transparent')
         .style('cursor', 'pointer')
-        .on('mousemove', function (event, w) {
+        .on('pointerdown pointermove', function (event, w) {
           const [px, py] = d3.pointer(event, containerEl)
           setTip({ visible: true, x: px, y: py, week: w })
           if (showMi) {
@@ -151,7 +164,8 @@ export function WeeklyMileageVertChart({ data, mode }: Props) {
               .attr('r', (d) => (d.weekKey === w.weekKey ? DOT_R_HOVER : DOT_R))
           }
         })
-        .on('mouseleave', () => {
+        .on('pointerleave', (event) => {
+          if ((event as PointerEvent).pointerType !== 'mouse') return
           setTip((t) => ({ ...t, visible: false }))
           svg.selectAll('.dot').attr('r', DOT_R)
         })

@@ -41,6 +41,18 @@ export function WeeklyZoneLineChart({ data, series }: Props) {
   const [tip, setTip] = useState<TipState>({ visible: false, x: 0, y: 0, week: null })
 
   useEffect(() => {
+    if (!tip.visible) return
+    function onDocDown(e: PointerEvent) {
+      const c = containerRef.current
+      if (c && !c.contains(e.target as Node)) {
+        setTip((t) => ({ ...t, visible: false }))
+      }
+    }
+    document.addEventListener('pointerdown', onDocDown)
+    return () => document.removeEventListener('pointerdown', onDocDown)
+  }, [tip.visible])
+
+  useEffect(() => {
     function draw() {
       if (!svgRef.current || !containerRef.current) return
       const weeks = data.slice(-WEEKS)
@@ -116,7 +128,7 @@ export function WeeklyZoneLineChart({ data, series }: Props) {
         .attr('height', innerH)
         .attr('fill', 'transparent')
         .style('cursor', 'pointer')
-        .on('mousemove', function (event, w) {
+        .on('pointerdown pointermove', function (event, w) {
           const [px, py] = d3.pointer(event, containerEl)
           setTip({ visible: true, x: px, y: py, week: w })
           series.forEach((s) => {
@@ -124,7 +136,8 @@ export function WeeklyZoneLineChart({ data, series }: Props) {
               .attr('r', (d) => (d.weekKey === w.weekKey ? DOT_R_HOVER : DOT_R))
           })
         })
-        .on('mouseleave', () => {
+        .on('pointerleave', (event) => {
+          if ((event as PointerEvent).pointerType !== 'mouse') return
           setTip((t) => ({ ...t, visible: false }))
           svg.selectAll('.dot').attr('r', DOT_R)
         })

@@ -63,8 +63,8 @@ export function WhereWeveBeenPage() {
   return (
     <>
       {seasonStats && (
-        <div className="flex shrink-0 items-center gap-8 border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900 px-6 py-3">
-          <span className="text-xs font-medium uppercase tracking-wider text-hmu-secondary dark:text-gray-500">
+        <div className="flex shrink-0 items-center gap-4 md:gap-8 overflow-x-auto border-b border-hmu-tertiary dark:border-gray-800 bg-hmu-surface-alt dark:bg-gray-900 px-3 md:px-6 py-2 md:py-3">
+          <span className="hidden md:inline shrink-0 text-xs font-medium uppercase tracking-wider text-hmu-secondary dark:text-gray-500">
             12mo totals
           </span>
           <StatBadge
@@ -78,16 +78,17 @@ export function WhereWeveBeenPage() {
             sub={`${Math.round((seasonStats.rideElev * 3.28084) / 1000)}k ft`}
           />
           <StatBadge label="Activities" value={`${seasonStats.total}`} />
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             <button
               onClick={() => exportStravaData(activities)}
               title="Download all activity data as JSON to upload to Claude"
-              className="flex items-center gap-1.5 rounded-lg border border-hmu-tertiary dark:border-gray-700 px-2.5 py-1 text-xs font-medium text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-gray-200 hover:border-hmu-secondary dark:hover:border-gray-500 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-hmu-tertiary dark:border-gray-700 px-2 md:px-2.5 py-1 text-xs font-medium text-hmu-secondary dark:text-gray-400 hover:text-hmu-primary dark:hover:text-gray-200 hover:border-hmu-secondary dark:hover:border-gray-500 transition-colors"
             >
               <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              Export Strava Data
+              <span className="hidden md:inline">Export Strava Data</span>
+              <span className="md:hidden">Export</span>
             </button>
           </div>
         </div>
