@@ -123,7 +123,10 @@ export function ActivityCard({ activity: a }: Props) {
   return (
     <>
       {/* ──── DESKTOP (≥ md): single-row layout ──────────────────────── */}
-      <div className="hidden md:flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4 py-3 hover:bg-hmu-surface-alt dark:hover:bg-gray-800/50 transition-colors">
+      <div className={clsx(
+        'hidden md:flex items-center gap-4 border-b border-hmu-tertiary dark:border-gray-800 px-4 py-3 hover:bg-hmu-surface-alt dark:hover:bg-gray-800/50 transition-colors',
+        sportRowGradient,
+      )}>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -162,10 +165,10 @@ export function ActivityCard({ activity: a }: Props) {
       </div>
 
       {/* ──── MOBILE (< md): three-line card ──────────────────────────── */}
-      <div className="md:hidden flex flex-col gap-2.5 border-b border-hmu-tertiary dark:border-gray-800 py-3">
+      <div className="md:hidden flex flex-col border-b border-hmu-tertiary dark:border-gray-800">
 
-        {/* Row 1: title + date — tinted gradient matches the sport badge color */}
-        <div className={clsx('min-w-0 px-4 py-1', sportRowGradient)}>
+        {/* Row 1: title + date — gradient is flush to the card top and to the stats row border below */}
+        <div className={clsx('min-w-0 px-4 py-2.5', sportRowGradient)}>
           <div className="flex items-center gap-2">
             <span className={sportBadgeColor}>{sportLabel(a.sport_type)}</span>
             <a
@@ -183,7 +186,7 @@ export function ActivityCard({ activity: a }: Props) {
         </div>
 
         {/* Row 2: time | dist | elev | HR */}
-        <div className="mx-4 flex items-center justify-around border-y border-hmu-tertiary dark:border-gray-800 py-2">
+        <div className="mx-4 flex items-center justify-around border-t border-hmu-tertiary dark:border-gray-800 py-2">
           <MobileStat value={formatTimeCompact(a.moving_time)} label="time" visible={a.moving_time > 0} />
           <MobileStat value={miles ?? ''} label="mi" visible={miles != null} />
           <MobileStat value={elevFt != null ? elevFt.toLocaleString() : ''} label="ft" visible={elevFt != null} />
@@ -191,7 +194,7 @@ export function ActivityCard({ activity: a }: Props) {
         </div>
 
         {/* Row 3: zone bar + per-zone times */}
-        <div className="flex w-full flex-col gap-1.5 px-4">
+        <div className="flex w-full flex-col gap-1.5 border-t border-hmu-tertiary dark:border-gray-800 px-4 pt-2.5 pb-3">
           {hrZone ? (
             <>
               <HRZoneBar buckets={hrZone.distribution_buckets} height="h-3" />
